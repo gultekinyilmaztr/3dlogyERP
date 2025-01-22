@@ -1,0 +1,86 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using _3dlogyERP.Core.Entities;
+using _3dlogyERP.Core.Interfaces;
+
+namespace _3dlogyERP.Application.Services
+{
+    public class MaterialService : IMaterialService
+    {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public MaterialService(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
+        public async Task<Material> GetMaterialByIdAsync(int id)
+        {
+            return await _unitOfWork.Materials.GetByIdAsync(id);
+        }
+
+        public async Task<IEnumerable<Material>> GetAllMaterialsAsync()
+        {
+            return await _unitOfWork.Materials.GetAllAsync();
+        }
+
+        public async Task<Material> CreateMaterialAsync(Material material)
+        {
+            await _unitOfWork.Materials.AddAsync(material);
+            await _unitOfWork.SaveChangesAsync();
+            return material;
+        }
+
+        public async Task<Material> UpdateMaterialAsync(Material material)
+        {
+            var existingMaterial = await _unitOfWork.Materials.GetByIdAsync(material.Id);
+            if (existingMaterial == null)
+                return null;
+
+            existingMaterial.Name = material.Name;
+            existingMaterial.Brand = material.Brand;
+            existingMaterial.MaterialTypeId = material.MaterialTypeId;
+            existingMaterial.Color = material.Color;
+            existingMaterial.CostPerKg = material.CostPerKg;
+            existingMaterial.CurrentStock = material.CurrentStock;
+            existingMaterial.MinimumStock = material.MinimumStock;
+            existingMaterial.BatchNumber = material.BatchNumber;
+            existingMaterial.IsActive = material.IsActive;
+
+            _unitOfWork.Materials.Update(existingMaterial);
+            await _unitOfWork.SaveChangesAsync();
+
+            return existingMaterial;
+        }
+
+        public async Task<bool> DeleteMaterialAsync(int id)
+        {
+            var material = await _unitOfWork.Materials.GetByIdAsync(id);
+            if (material == null)
+                return false;
+
+            _unitOfWork.Materials.Remove(material);
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<IEnumerable<Material>> GetMaterialsByTypeAsync(int materialTypeId)
+        {
+            return await _unitOfWork.Materials.FindAsync(m => m.MaterialTypeId == materialTypeId);
+        }
+
+        public async Task<bool> UpdateMaterialStockAsync(int id, int quantity)
+        {
+            var material = await _unitOfWork.Materials.GetByIdAsync(id);
+            if (material == null)
+                return false;
+
+            material.CurrentStock = quantity;
+            _unitOfWork.Materials.Update(material);
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
+        }
+    }
+}
