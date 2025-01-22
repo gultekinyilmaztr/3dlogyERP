@@ -3,6 +3,7 @@ using _3dlogyERP.Core.Interfaces;
 using _3dlogyERP.Infrastructure.Data;
 using _3dlogyERP.Infrastructure.Repositories;
 using _3dlogyERP.Infrastructure.Services;
+using _3dlogyERP.Web.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -11,7 +12,6 @@ using Serilog;
 using Serilog.Events;
 using StackExchange.Redis;
 using System.Text;
-using _3dlogyERP.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,7 +31,27 @@ builder.Services.AddControllers();
 
 // Configure DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        b => b.MigrationsAssembly("3dlogyERP.Infrastructure")
+    );
+});
+
+// Register UnitOfWork
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Register Repositories
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
+// Register Services
+builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<IPrintingCostService, PrintingCostService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IMaterialService, MaterialService>();
+builder.Services.AddScoped<IEquipmentService, EquipmentService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -91,14 +111,6 @@ var redis = ConnectionMultiplexer.Connect(redisConnection);
 builder.Services.AddSingleton<IConnectionMultiplexer>(redis);
 
 builder.Services.AddScoped<ICacheService, RedisCacheService>();
-
-// Register Services
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<ICustomerService, CustomerService>();
-builder.Services.AddScoped<IExpenseService, ExpenseService>();
-builder.Services.AddScoped<IEquipmentService, EquipmentService>();
-builder.Services.AddScoped<IMaterialService, MaterialService>();
 
 var app = builder.Build();
 

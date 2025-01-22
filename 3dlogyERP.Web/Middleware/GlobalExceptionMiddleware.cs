@@ -64,8 +64,8 @@ namespace _3dlogyERP.Web.Middleware
 
                 default:
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                    response.Message = _env.IsDevelopment() 
-                        ? exception.Message 
+                    response.Message = _env.IsDevelopment()
+                        ? exception.Message
                         : ErrorMessages.UnexpectedError;
                     response.ErrorCode = "INTERNAL_SERVER_ERROR";
                     break;

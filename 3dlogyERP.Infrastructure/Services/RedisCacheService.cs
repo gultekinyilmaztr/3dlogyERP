@@ -1,7 +1,7 @@
-using System.Text.Json;
 using _3dlogyERP.Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 using StackExchange.Redis;
+using System.Text.Json;
 
 namespace _3dlogyERP.Infrastructure.Services
 {

@@ -3,7 +3,6 @@ using _3dlogyERP.Application.Services;
 using _3dlogyERP.Core.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace _3dlogyERP.Web.Controllers
 {

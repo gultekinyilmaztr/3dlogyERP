@@ -51,7 +51,7 @@ namespace _3dlogyERP.Infrastructure.Data
 
         public async Task<int> CompleteAsync()
         {
-            return await _context.SaveChangesAsync();
+            return await SaveChangesAsync();
         }
 
         public async Task<int> SaveChangesAsync()

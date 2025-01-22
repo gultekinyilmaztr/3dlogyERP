@@ -17,7 +17,7 @@ namespace _3dlogyERP.Web.Controllers
         {
             ArgumentNullException.ThrowIfNull(expenseService);
             ArgumentNullException.ThrowIfNull(logger);
-            
+
             _expenseService = expenseService;
             _logger = logger;
         }

@@ -1,9 +1,6 @@
 using _3dlogyERP.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using BC = BCrypt.Net.BCrypt;
 
 namespace _3dlogyERP.Infrastructure.Data

@@ -21,7 +21,7 @@ namespace _3dlogyERP.Application.Services
         {
             ArgumentNullException.ThrowIfNull(unitOfWork);
             ArgumentNullException.ThrowIfNull(configuration);
-            
+
             _unitOfWork = unitOfWork;
             _configuration = configuration;
         }

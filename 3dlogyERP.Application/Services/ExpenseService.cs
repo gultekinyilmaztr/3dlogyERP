@@ -1,18 +1,20 @@
 using _3dlogyERP.Core.Entities;
 using _3dlogyERP.Core.Interfaces;
-using _3dlogyERP.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+using _3dlogyERP.Core.Exceptions;
+using System.Linq.Expressions;
+using System.Linq;
 
 namespace _3dlogyERP.Application.Services
 {
     public class ExpenseService : IExpenseService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IRepository<Expense> _expenseRepository;
+        private readonly IRepository<ExpenseCategory> _categoryRepository;
 
-        public ExpenseService(ApplicationDbContext context)
+        public ExpenseService(IRepository<Expense> expenseRepository, IRepository<ExpenseCategory> categoryRepository)
         {
-            ArgumentNullException.ThrowIfNull(context);
-            _context = context;
+            _expenseRepository = expenseRepository ?? throw new ArgumentNullException(nameof(expenseRepository));
+            _categoryRepository = categoryRepository ?? throw new ArgumentNullException(nameof(categoryRepository));
         }
 
         // Harcama İşlemleri
@@ -22,71 +24,54 @@ namespace _3dlogyERP.Application.Services
             expense.ExpenseDate = expense.ExpenseDate == default ? DateTime.Now : expense.ExpenseDate;
             expense.IsApproved = false;
 
-            await _context.Expenses.AddAsync(expense);
-            await _context.SaveChangesAsync();
+            await _expenseRepository.AddAsync(expense);
             return expense;
         }
 
         public async Task<Expense> GetExpenseByIdAsync(int id)
         {
-            return await _context.Expenses
-                .Include(e => e.Category)
-                .FirstOrDefaultAsync(e => e.Id == id);
+            var expense = await _expenseRepository.GetByIdAsync(id);
+            if (expense == null)
+                throw new NotFoundException($"Harcama bulunamadı: {id}");
+            return expense;
         }
 
         public async Task<IEnumerable<Expense>> GetAllExpensesAsync()
         {
-            return await _context.Expenses
-                .Include(e => e.Category)
-                .OrderByDescending(e => e.ExpenseDate)
-                .ToListAsync();
+            return await _expenseRepository.GetAllAsync();
         }
 
         public async Task<IEnumerable<Expense>> GetExpensesByDateRangeAsync(DateTime startDate, DateTime endDate)
         {
-            return await _context.Expenses
-                .Include(e => e.Category)
-                .Where(e => e.ExpenseDate >= startDate && e.ExpenseDate <= endDate)
-                .OrderByDescending(e => e.ExpenseDate)
-                .ToListAsync();
+            return await _expenseRepository.FindAsync(e => e.ExpenseDate >= startDate && e.ExpenseDate <= endDate);
         }
 
         public async Task<IEnumerable<Expense>> GetExpensesByCategoryAsync(int categoryId)
         {
-            return await _context.Expenses
-                .Include(e => e.Category)
-                .Where(e => e.ExpenseCategoryId == categoryId)
-                .OrderByDescending(e => e.ExpenseDate)
-                .ToListAsync();
+            return await _expenseRepository.FindAsync(e => e.ExpenseCategoryId == categoryId);
         }
 
         public async Task<bool> UpdateExpenseAsync(Expense expense)
         {
             ArgumentNullException.ThrowIfNull(expense);
-            var existingExpense = await _context.Expenses.FindAsync(expense.Id);
-            if (existingExpense == null)
-                return false;
-
-            _context.Entry(existingExpense).CurrentValues.SetValues(expense);
-            await _context.SaveChangesAsync();
+            _expenseRepository.Update(expense);
             return true;
         }
 
         public async Task<bool> DeleteExpenseAsync(int id)
         {
-            var expense = await _context.Expenses.FindAsync(id);
+            var expense = await _expenseRepository.GetByIdAsync(id);
             if (expense == null)
                 return false;
 
-            _context.Expenses.Remove(expense);
-            await _context.SaveChangesAsync();
+            _expenseRepository.Remove(expense);
             return true;
         }
 
         public async Task<bool> ApproveExpenseAsync(int id, string approvedBy)
         {
             ArgumentNullException.ThrowIfNull(approvedBy);
-            var expense = await _context.Expenses.FindAsync(id);
+            var expense = await _expenseRepository.GetByIdAsync(id);
             if (expense == null)
                 return false;
 
@@ -94,7 +79,7 @@ namespace _3dlogyERP.Application.Services
             expense.ApprovedBy = approvedBy;
             expense.ApprovalDate = DateTime.Now;
 
-            await _context.SaveChangesAsync();
+            _expenseRepository.Update(expense);
             return true;
         }
 
@@ -102,112 +87,85 @@ namespace _3dlogyERP.Application.Services
         public async Task<ExpenseCategory> CreateCategoryAsync(ExpenseCategory category)
         {
             ArgumentNullException.ThrowIfNull(category);
-            await _context.ExpenseCategories.AddAsync(category);
-            await _context.SaveChangesAsync();
+            await _categoryRepository.AddAsync(category);
             return category;
         }
 
         public async Task<ExpenseCategory> GetCategoryByIdAsync(int id)
         {
-            return await _context.ExpenseCategories
-                .Include(c => c.SubCategories)
-                .FirstOrDefaultAsync(c => c.Id == id);
+            return await _categoryRepository.GetByIdAsync(id);
         }
 
         public async Task<IEnumerable<ExpenseCategory>> GetAllCategoriesAsync()
         {
-            return await _context.ExpenseCategories
-                .Include(c => c.SubCategories)
-                .ToListAsync();
+            return await _categoryRepository.GetAllAsync();
         }
 
         public async Task<IEnumerable<ExpenseCategory>> GetMainCategoriesAsync()
         {
-            return await _context.ExpenseCategories
-                .Include(c => c.SubCategories)
-                .Where(c => c.ParentCategoryId == null)
-                .ToListAsync();
+            return await _categoryRepository.FindAsync(c => c.ParentCategoryId == null);
         }
 
         public async Task<IEnumerable<ExpenseCategory>> GetSubCategoriesAsync(int parentId)
         {
-            return await _context.ExpenseCategories
-                .Where(c => c.ParentCategoryId == parentId)
-                .ToListAsync();
+            return await _categoryRepository.FindAsync(c => c.ParentCategoryId == parentId);
         }
 
         public async Task<bool> UpdateCategoryAsync(ExpenseCategory category)
         {
             ArgumentNullException.ThrowIfNull(category);
-            var existingCategory = await _context.ExpenseCategories.FindAsync(category.Id);
-            if (existingCategory == null)
-                return false;
-
-            _context.Entry(existingCategory).CurrentValues.SetValues(category);
-            await _context.SaveChangesAsync();
+            _categoryRepository.Update(category);
             return true;
         }
 
         public async Task<bool> DeleteCategoryAsync(int id)
         {
-            var category = await _context.ExpenseCategories
-                .Include(c => c.SubCategories)
-                .Include(c => c.Expenses)
-                .FirstOrDefaultAsync(c => c.Id == id);
-
+            var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null)
                 return false;
 
-            // Alt kategorileri veya harcamaları varsa silme
-            if (category.SubCategories.Any() || category.Expenses.Any())
+            var hasSubCategories = await _categoryRepository.AnyAsync(c => c.ParentCategoryId == id);
+            var hasExpenses = await _expenseRepository.AnyAsync(e => e.ExpenseCategoryId == id);
+
+            if (hasSubCategories || hasExpenses)
                 return false;
 
-            _context.ExpenseCategories.Remove(category);
-            await _context.SaveChangesAsync();
+            _categoryRepository.Remove(category);
             return true;
         }
 
         // Raporlama İşlemleri
         public async Task<decimal> GetTotalExpensesByDateRangeAsync(DateTime startDate, DateTime endDate)
         {
-            return await _context.Expenses
-                .Where(e => e.ExpenseDate >= startDate && e.ExpenseDate <= endDate)
-                .SumAsync(e => e.Amount);
+            var expenses = await GetExpensesByDateRangeAsync(startDate, endDate);
+            return expenses.Sum(e => e.Amount);
         }
 
         public async Task<decimal> GetTotalExpensesByCategoryAsync(int categoryId, DateTime? startDate = null, DateTime? endDate = null)
         {
-            var query = _context.Expenses.Where(e => e.ExpenseCategoryId == categoryId);
+            var expenses = await GetExpensesByCategoryAsync(categoryId);
+            var filteredExpenses = expenses.AsQueryable();
 
             if (startDate.HasValue)
-                query = query.Where(e => e.ExpenseDate >= startDate.Value);
+                filteredExpenses = filteredExpenses.Where(e => e.ExpenseDate >= startDate.Value);
             if (endDate.HasValue)
-                query = query.Where(e => e.ExpenseDate <= endDate.Value);
+                filteredExpenses = filteredExpenses.Where(e => e.ExpenseDate <= endDate.Value);
 
-            return await query.SumAsync(e => e.Amount);
+            return filteredExpenses.Sum(e => e.Amount);
         }
 
         public async Task<IDictionary<string, decimal>> GetExpensesSummaryByCategories(DateTime startDate, DateTime endDate)
         {
-            var expenses = await _context.Expenses
-                .Include(e => e.Category)
-                .Where(e => e.ExpenseDate >= startDate && e.ExpenseDate <= endDate)
-                .GroupBy(e => e.Category.Name)
-                .Select(g => new { CategoryName = g.Key, TotalAmount = g.Sum(e => e.Amount) })
-                .ToDictionaryAsync(x => x.CategoryName, x => x.TotalAmount);
-
-            return expenses;
+            var expenses = await GetExpensesByDateRangeAsync(startDate, endDate);
+            return expenses.GroupBy(e => e.Category.Name)
+                         .ToDictionary(g => g.Key, g => g.Sum(e => e.Amount));
         }
 
         public async Task<IDictionary<DateTime, decimal>> GetDailyExpensesAsync(DateTime startDate, DateTime endDate)
         {
-            var expenses = await _context.Expenses
-                .Where(e => e.ExpenseDate >= startDate && e.ExpenseDate <= endDate)
-                .GroupBy(e => e.ExpenseDate.Date)
-                .Select(g => new { Date = g.Key, TotalAmount = g.Sum(e => e.Amount) })
-                .ToDictionaryAsync(x => x.Date, x => x.TotalAmount);
-
-            return expenses;
+            var expenses = await GetExpensesByDateRangeAsync(startDate, endDate);
+            return expenses.GroupBy(e => e.ExpenseDate.Date)
+                         .ToDictionary(g => g.Key, g => g.Sum(e => e.Amount));
         }
     }
 }

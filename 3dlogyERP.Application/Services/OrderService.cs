@@ -11,14 +11,14 @@ namespace _3dlogyERP.Application.Services
         public OrderService(IUnitOfWork unitOfWork)
         {
             ArgumentNullException.ThrowIfNull(unitOfWork);
-            
+
             _unitOfWork = unitOfWork;
         }
 
         public async Task<Order> CreateOrderAsync(Order order)
         {
             ArgumentNullException.ThrowIfNull(order);
-            
+
             if (order == null)
                 throw new ArgumentNullException(nameof(order));
 
@@ -41,7 +41,7 @@ namespace _3dlogyERP.Application.Services
         public async Task<Order> GetOrderByNumberAsync(string orderNumber)
         {
             ArgumentNullException.ThrowIfNull(orderNumber);
-            
+
             if (string.IsNullOrEmpty(orderNumber))
                 throw new ArgumentNullException(nameof(orderNumber));
 
@@ -52,7 +52,7 @@ namespace _3dlogyERP.Application.Services
         public async Task<Order> UpdateOrderAsync(Order order)
         {
             ArgumentNullException.ThrowIfNull(order);
-            
+
             var existingOrder = await _unitOfWork.Orders.GetByIdAsync(order.Id);
             if (existingOrder == null)
                 return null;
@@ -116,7 +116,7 @@ namespace _3dlogyERP.Application.Services
         public async Task<Order> ProcessNewOrderAsync(Order order)
         {
             ArgumentNullException.ThrowIfNull(order);
-            
+
             if (order == null)
                 throw new ArgumentNullException(nameof(order));
 
