@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace _3dlogyERP.Core.Entities
 {
     public class Order
@@ -19,7 +16,7 @@ namespace _3dlogyERP.Core.Entities
         public bool RequiresShipping { get; set; }
         public string ShippingAddress { get; set; }
         public string TrackingNumber { get; set; }
-        
+
         // Navigation properties
         public virtual Customer Customer { get; set; }
         public virtual ICollection<OrderService> Services { get; set; }

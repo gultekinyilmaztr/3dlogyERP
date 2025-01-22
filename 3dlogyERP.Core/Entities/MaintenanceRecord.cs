@@ -1,5 +1,3 @@
-using System;
-
 namespace _3dlogyERP.Core.Entities
 {
     public class MaintenanceRecord
@@ -12,7 +10,7 @@ namespace _3dlogyERP.Core.Entities
         public decimal Cost { get; set; }
         public string Notes { get; set; }
         public bool IsScheduled { get; set; }
-        
+
         // Navigation property
         public virtual Equipment Equipment { get; set; }
     }

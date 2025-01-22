@@ -1,13 +1,27 @@
-using _3dlogyERP.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using _3dlogyERP.Core.Interfaces;
-using _3dlogyERP.Infrastructure.Repositories;
 using _3dlogyERP.Application.Services;
+using _3dlogyERP.Core.Interfaces;
+using _3dlogyERP.Infrastructure.Data;
+using _3dlogyERP.Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using Serilog.Events;
+using StackExchange.Redis;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .WriteTo.Console()
+    .WriteTo.File("Logs/app-.log", rollingInterval: RollingInterval.Day)
+    .WriteTo.Seq(builder.Configuration["Logging:Seq:ServerUrl"])
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -36,10 +50,21 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Redis Configuration
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var redisConnection = configuration.GetConnectionString("Redis");
+    return ConnectionMultiplexer.Connect(redisConnection);
+});
+
+builder.Services.AddScoped<ICacheService, RedisCacheService>();
+
 // Register Services
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<IEquipmentService, EquipmentService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
 
@@ -48,6 +73,24 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Seed Data
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        await SeedData.Initialize(services);
+        Log.Information("Seed data initialized successfully.");
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "An error occurred while seeding the database.");
+    }
+}
+
+// Configure Serilog request logging
+app.UseSerilogRequestLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

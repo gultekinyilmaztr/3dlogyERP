@@ -1,7 +1,7 @@
 using _3dlogyERP.Application.DTOs;
 using _3dlogyERP.Core.Entities;
 
-namespace _3dlogyERP.Application.Services
+namespace _3dlogyERP.Application.Interfaces
 {
     public interface IAuthService
     {

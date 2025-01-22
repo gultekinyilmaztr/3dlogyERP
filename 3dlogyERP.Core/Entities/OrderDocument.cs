@@ -1,5 +1,3 @@
-using System;
-
 namespace _3dlogyERP.Core.Entities
 {
     public class OrderDocument
@@ -10,7 +8,7 @@ namespace _3dlogyERP.Core.Entities
         public string DocumentName { get; set; }
         public string FilePath { get; set; }
         public DateTime UploadDate { get; set; }
-        
+
         // Navigation property
         public virtual Order Order { get; set; }
     }

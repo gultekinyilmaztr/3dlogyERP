@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using _3dlogyERP.Core.Entities;
 using _3dlogyERP.Core.Interfaces;
 using _3dlogyERP.Infrastructure.Repositories;
@@ -24,22 +22,22 @@ namespace _3dlogyERP.Infrastructure.Data
             _context = context;
         }
 
-        public IRepository<Customer> Customers => 
+        public IRepository<Customer> Customers =>
             _customers ??= new Repository<Customer>(_context);
 
-        public IRepository<Order> Orders => 
+        public IRepository<Order> Orders =>
             _orders ??= new Repository<Order>(_context);
 
-        public IRepository<OrderService> OrderServices => 
+        public IRepository<OrderService> OrderServices =>
             _orderServices ??= new Repository<OrderService>(_context);
 
-        public IRepository<Equipment> Equipment => 
+        public IRepository<Equipment> Equipment =>
             _equipment ??= new Repository<Equipment>(_context);
 
         public IRepository<EquipmentType> EquipmentTypes =>
             _equipmentTypes ??= new Repository<EquipmentType>(_context);
 
-        public IRepository<Material> Materials => 
+        public IRepository<Material> Materials =>
             _materials ??= new Repository<Material>(_context);
 
         public IRepository<MaterialType> MaterialTypes =>

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace _3dlogyERP.Application.DTOs
 {
     // Müşterinin siparişlerini listelemek için kullanılacak DTO

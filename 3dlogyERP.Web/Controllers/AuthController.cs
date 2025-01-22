@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using _3dlogyERP.Application.DTOs;
 using _3dlogyERP.Application.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -19,11 +17,11 @@ namespace _3dlogyERP.Web.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
+        public async Task<ActionResult<LoginResponseDTO>> Login([FromBody] LoginRequestDTO request)
         {
             try
             {
-                var response = await _authService.LoginAsync(request);
+                var response = await _authService.Login(request);
                 return Ok(response);
             }
             catch (InvalidOperationException ex)
@@ -33,11 +31,11 @@ namespace _3dlogyERP.Web.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
+        public async Task<ActionResult<RegisterResponseDTO>> Register([FromBody] RegisterRequestDTO request)
         {
             try
             {
-                var response = await _authService.RegisterCustomerAsync(request);
+                var response = await _authService.Register(request);
                 return Ok(response);
             }
             catch (InvalidOperationException ex)
@@ -48,25 +46,23 @@ namespace _3dlogyERP.Web.Controllers
 
         [Authorize]
         [HttpPost("change-password")]
-        public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordDTO request)
         {
             try
             {
-                var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
-                await _authService.ChangePasswordAsync(userId, request);
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    return BadRequest(new { message = "Invalid user ID" });
+                }
+
+                await _authService.ChangePassword(userId, request);
                 return Ok(new { message = "Password changed successfully" });
             }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
-        }
-
-        [HttpPost("validate-token")]
-        public async Task<ActionResult> ValidateToken([FromBody] string token)
-        {
-            var isValid = await _authService.ValidateTokenAsync(token);
-            return Ok(new { isValid });
         }
     }
 }

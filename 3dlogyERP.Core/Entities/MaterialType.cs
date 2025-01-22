@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace _3dlogyERP.Core.Entities
 {
     public class MaterialType

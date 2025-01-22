@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace _3dlogyERP.Core.Entities
 {
     public class User
@@ -13,10 +10,6 @@ namespace _3dlogyERP.Core.Entities
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLoginAt { get; set; }
-        public int? CustomerId { get; set; }
-
-        // Navigation property
-        public virtual Customer Customer { get; set; }
     }
 
     public static class UserRoles

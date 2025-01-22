@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\3dlogyERP.Core\3dlogyERP.Core.csproj" />
+    <ProjectReference Include="..\3dlogyERP.Infrastructure\3dlogyERP.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

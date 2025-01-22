@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace _3dlogyERP.Core.Entities
 {
     public class Customer
@@ -17,7 +14,7 @@ namespace _3dlogyERP.Core.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLoginAt { get; set; }
         public bool IsActive { get; set; }
-        
+
         // Navigation properties
         public virtual ICollection<Order> Orders { get; set; }
         public virtual ICollection<CustomerDocument> Documents { get; set; }

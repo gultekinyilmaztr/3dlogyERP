@@ -1,13 +1,11 @@
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using _3dlogyERP.Application.DTOs;
 using _3dlogyERP.Core.Entities;
 using _3dlogyERP.Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using BC = BCrypt.Net.BCrypt;
 
 namespace _3dlogyERP.Application.Services
@@ -16,17 +14,22 @@ namespace _3dlogyERP.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
-        private readonly ICustomerService _customerService;
 
-        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration, ICustomerService customerService)
+        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration)
         {
+            ArgumentNullException.ThrowIfNull(unitOfWork);
+            ArgumentNullException.ThrowIfNull(configuration);
+            
             _unitOfWork = unitOfWork;
             _configuration = configuration;
-            _customerService = customerService;
         }
 
-        public async Task<AuthResponse> LoginAsync(LoginRequest request)
+        public async Task<LoginResponseDTO> Login(LoginRequestDTO request)
         {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Email);
+            ArgumentNullException.ThrowIfNull(request.Password);
+
             var user = await GetUserByEmailAsync(request.Email);
             if (user == null || !user.IsActive)
                 throw new InvalidOperationException("Invalid credentials");
@@ -38,37 +41,28 @@ namespace _3dlogyERP.Application.Services
             await _unitOfWork.CompleteAsync();
 
             var token = await GenerateJwtTokenAsync(user);
+            var refreshToken = await GenerateRefreshTokenAsync(user);
 
-            return new AuthResponse
+            return new LoginResponseDTO
             {
                 Token = token,
+                RefreshToken = refreshToken,
                 Username = user.Username,
                 Role = user.Role
             };
         }
 
-        public async Task<AuthResponse> RegisterCustomerAsync(RegisterRequest request)
+        public async Task<RegisterResponseDTO> Register(RegisterRequestDTO request)
         {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.Email);
+            ArgumentNullException.ThrowIfNull(request.Password);
+            ArgumentNullException.ThrowIfNull(request.Username);
+
             // Check if email already exists
             var existingUser = await GetUserByEmailAsync(request.Email);
             if (existingUser != null)
                 throw new InvalidOperationException("Email already registered");
-
-            // Create customer first
-            var customer = new Customer
-            {
-                CompanyName = request.CompanyName,
-                ContactName = request.ContactName,
-                Email = request.Email,
-                Phone = request.Phone,
-                Address = request.Address,
-                TaxNumber = request.TaxNumber,
-                TaxOffice = request.TaxOffice,
-                CreatedAt = DateTime.UtcNow,
-                IsActive = true
-            };
-
-            await _customerService.CreateCustomerAsync(customer);
 
             // Create user account
             var user = new User
@@ -78,35 +72,49 @@ namespace _3dlogyERP.Application.Services
                 PasswordHash = BC.HashPassword(request.Password),
                 Role = UserRoles.Customer,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                CustomerId = customer.Id
+                CreatedAt = DateTime.UtcNow
             };
 
+            await _unitOfWork.Users.AddAsync(user);
             await _unitOfWork.CompleteAsync();
 
-            var token = await GenerateJwtTokenAsync(user);
-
-            return new AuthResponse
+            return new RegisterResponseDTO
             {
-                Token = token,
+                Id = user.Id,
                 Username = user.Username,
+                Email = user.Email,
                 Role = user.Role
             };
         }
 
-        public async Task<User> GetUserByEmailAsync(string email)
+        public async Task<User> GetUserById(int id)
         {
+            return await _unitOfWork.Users.GetByIdAsync(id);
+        }
+
+        private async Task<User> GetUserByEmailAsync(string email)
+        {
+            ArgumentNullException.ThrowIfNull(email);
+
             var users = await _unitOfWork.Users.FindAsync(u => u.Email == email);
             return users.FirstOrDefault();
         }
 
-        public async Task<bool> ValidatePasswordAsync(User user, string password)
+        private async Task<bool> ValidatePasswordAsync(User user, string password)
         {
+            ArgumentNullException.ThrowIfNull(user);
+            ArgumentNullException.ThrowIfNull(password);
+
             return BC.Verify(password, user.PasswordHash);
         }
 
-        public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordRequest request)
+        public async Task<bool> ChangePassword(int userId, ChangePasswordDTO request)
         {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(request.CurrentPassword);
+            ArgumentNullException.ThrowIfNull(request.NewPassword);
+            ArgumentNullException.ThrowIfNull(request.ConfirmNewPassword);
+
             var user = await _unitOfWork.Users.GetByIdAsync(userId);
             if (user == null)
                 throw new InvalidOperationException("User not found");
@@ -123,10 +131,12 @@ namespace _3dlogyERP.Application.Services
             return true;
         }
 
-        public async Task<string> GenerateJwtTokenAsync(User user)
+        private async Task<string> GenerateJwtTokenAsync(User user)
         {
+            ArgumentNullException.ThrowIfNull(user);
+
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]);
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
@@ -134,7 +144,7 @@ namespace _3dlogyERP.Application.Services
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Role, user.Role),
-                    new Claim("CustomerId", user.CustomerId?.ToString() ?? "")
+                    new Claim(ClaimTypes.Name, user.Username)
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -144,28 +154,15 @@ namespace _3dlogyERP.Application.Services
             return tokenHandler.WriteToken(token);
         }
 
-        public async Task<bool> ValidateTokenAsync(string token)
+        private async Task<string> GenerateRefreshTokenAsync(User user)
         {
-            try
-            {
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Secret"]);
+            ArgumentNullException.ThrowIfNull(user);
 
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ClockSkew = TimeSpan.Zero
-                }, out SecurityToken validatedToken);
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            // Generate a random refresh token
+            var randomNumber = new byte[32];
+            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
         }
     }
 }

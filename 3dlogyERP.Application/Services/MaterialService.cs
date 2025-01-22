@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using _3dlogyERP.Core.Entities;
 using _3dlogyERP.Core.Interfaces;
 
@@ -11,6 +9,8 @@ namespace _3dlogyERP.Application.Services
 
         public MaterialService(IUnitOfWork unitOfWork)
         {
+            ArgumentNullException.ThrowIfNull(unitOfWork);
+            
             _unitOfWork = unitOfWork;
         }
 
@@ -26,6 +26,8 @@ namespace _3dlogyERP.Application.Services
 
         public async Task<Material> CreateMaterialAsync(Material material)
         {
+            ArgumentNullException.ThrowIfNull(material);
+            
             await _unitOfWork.Materials.AddAsync(material);
             await _unitOfWork.SaveChangesAsync();
             return material;
@@ -33,6 +35,8 @@ namespace _3dlogyERP.Application.Services
 
         public async Task<Material> UpdateMaterialAsync(Material material)
         {
+            ArgumentNullException.ThrowIfNull(material);
+            
             var existingMaterial = await _unitOfWork.Materials.GetByIdAsync(material.Id);
             if (existingMaterial == null)
                 return null;
@@ -72,6 +76,8 @@ namespace _3dlogyERP.Application.Services
 
         public async Task<bool> UpdateMaterialStockAsync(int id, int quantity)
         {
+            ArgumentNullException.ThrowIfNull(quantity);
+            
             var material = await _unitOfWork.Materials.GetByIdAsync(id);
             if (material == null)
                 return false;

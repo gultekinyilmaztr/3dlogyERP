@@ -1,25 +1,27 @@
 namespace _3dlogyERP.Application.DTOs
 {
-    public class LoginRequest
+    public class LoginRequestDTO
     {
         public string Email { get; set; }
         public string Password { get; set; }
     }
 
-    public class RegisterRequest
+    public class RegisterRequestDTO
     {
         public string Username { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
-        public string CompanyName { get; set; }
-        public string ContactName { get; set; }
-        public string Phone { get; set; }
-        public string Address { get; set; }
-        public string TaxNumber { get; set; }
-        public string TaxOffice { get; set; }
     }
 
-    public class AuthResponse
+    public class RegisterResponseDTO
+    {
+        public int Id { get; set; }
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public string Role { get; set; }
+    }
+
+    public class LoginResponseDTO
     {
         public string Token { get; set; }
         public string RefreshToken { get; set; }
@@ -27,7 +29,7 @@ namespace _3dlogyERP.Application.DTOs
         public string Role { get; set; }
     }
 
-    public class ChangePasswordRequest
+    public class ChangePasswordDTO
     {
         public string CurrentPassword { get; set; }
         public string NewPassword { get; set; }

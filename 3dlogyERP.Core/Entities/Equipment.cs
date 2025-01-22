@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace _3dlogyERP.Core.Entities
 {
     public class Equipment
@@ -16,9 +13,10 @@ namespace _3dlogyERP.Core.Entities
         public decimal MaintenanceCostPerHour { get; set; }
         public decimal ElectricityConsumptionPerHour { get; set; }
         public bool IsActive { get; set; }
+        public bool IsAvailable { get; set; }
         public DateTime LastMaintenanceDate { get; set; }
         public DateTime NextMaintenanceDate { get; set; }
-        
+
         // Navigation properties
         public virtual EquipmentType EquipmentType { get; set; }
         public virtual ICollection<OrderService> Services { get; set; }

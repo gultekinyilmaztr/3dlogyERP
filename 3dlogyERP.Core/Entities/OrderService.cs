@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+using _3dlogyERP.Core.Enums;
 
 namespace _3dlogyERP.Core.Entities
 {
@@ -18,9 +17,10 @@ namespace _3dlogyERP.Core.Entities
         public DateTime StartTime { get; set; }
         public DateTime? EndTime { get; set; }
         public TimeSpan EstimatedDuration { get; set; }
-        public string Status { get; set; }
+        public ServiceStatus Status { get; set; }
         public int? EquipmentId { get; set; }
         public int? MaterialId { get; set; }
+        public DateTime CreatedAt { get; set; }
 
         // Navigation properties
         public virtual Order Order { get; set; }

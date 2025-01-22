@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using _3dlogyERP.Core.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace _3dlogyERP.Infrastructure.Data
 {
@@ -19,6 +19,8 @@ namespace _3dlogyERP.Infrastructure.Data
         public DbSet<MaterialType> MaterialTypes { get; set; }
         public DbSet<ServiceType> ServiceTypes { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
+        public DbSet<Expense> Expenses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -43,7 +45,7 @@ namespace _3dlogyERP.Infrastructure.Data
                 entity.HasIndex(e => e.OrderNumber).IsUnique();
                 entity.Property(e => e.TotalCost).HasPrecision(18, 2);
                 entity.Property(e => e.FinalPrice).HasPrecision(18, 2);
-                
+
                 entity.HasOne(d => d.Customer)
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.CustomerId)
@@ -158,11 +160,6 @@ namespace _3dlogyERP.Infrastructure.Data
                 entity.Property(e => e.Role).IsRequired().HasMaxLength(20);
                 entity.HasIndex(e => e.Email).IsUnique();
                 entity.HasIndex(e => e.Username).IsUnique();
-
-                entity.HasOne(d => d.Customer)
-                    .WithMany()
-                    .HasForeignKey(d => d.CustomerId)
-                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using _3dlogyERP.Core.Entities;
 using _3dlogyERP.Core.Interfaces;
 
@@ -50,12 +47,12 @@ namespace _3dlogyERP.Application.Services
                 throw new InvalidOperationException("Customer not found");
 
             // Check if email is being changed and if new email already exists
-            if (existingCustomer.Email != customer.Email && 
+            if (existingCustomer.Email != customer.Email &&
                 await _unitOfWork.Customers.AnyAsync(c => c.Email == customer.Email))
                 throw new InvalidOperationException("Email already exists");
 
             // Check if phone is being changed and if new phone already exists
-            if (existingCustomer.Phone != customer.Phone && 
+            if (existingCustomer.Phone != customer.Phone &&
                 await _unitOfWork.Customers.AnyAsync(c => c.Phone == customer.Phone))
                 throw new InvalidOperationException("Phone number already exists");
 
