@@ -11,10 +11,15 @@ namespace _3dlogyERP.Web.Controllers
     public class ExpenseController : ControllerBase
     {
         private readonly IExpenseService _expenseService;
+        private readonly ILogger<ExpenseController> _logger;
 
-        public ExpenseController(IExpenseService expenseService)
+        public ExpenseController(IExpenseService expenseService, ILogger<ExpenseController> logger)
         {
+            ArgumentNullException.ThrowIfNull(expenseService);
+            ArgumentNullException.ThrowIfNull(logger);
+            
             _expenseService = expenseService;
+            _logger = logger;
         }
 
         // Harcama İşlemleri
@@ -25,7 +30,7 @@ namespace _3dlogyERP.Web.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetExpense(int id)
         {
             var expense = await _expenseService.GetExpenseByIdAsync(id);
@@ -35,6 +40,7 @@ namespace _3dlogyERP.Web.Controllers
         }
 
         [HttpGet]
+        [Route("expenses")]
         public async Task<IActionResult> GetAllExpenses()
         {
             var expenses = await _expenseService.GetAllExpensesAsync();
@@ -48,14 +54,14 @@ namespace _3dlogyERP.Web.Controllers
             return Ok(expenses);
         }
 
-        [HttpGet("category/{categoryId}")]
+        [HttpGet("by-category/{categoryId:int}")]
         public async Task<IActionResult> GetExpensesByCategory(int categoryId)
         {
             var expenses = await _expenseService.GetExpensesByCategoryAsync(categoryId);
             return Ok(expenses);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateExpense(int id, [FromBody] Expense expense)
         {
             if (id != expense.Id)
@@ -67,7 +73,7 @@ namespace _3dlogyERP.Web.Controllers
             return Ok();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteExpense(int id)
         {
             var result = await _expenseService.DeleteExpenseAsync(id);
@@ -76,7 +82,7 @@ namespace _3dlogyERP.Web.Controllers
             return Ok();
         }
 
-        [HttpPost("{id}/approve")]
+        [HttpPost("{id:int}/approve")]
         public async Task<IActionResult> ApproveExpense(int id, [FromQuery] string approvedBy)
         {
             var result = await _expenseService.ApproveExpenseAsync(id, approvedBy);
@@ -93,7 +99,7 @@ namespace _3dlogyERP.Web.Controllers
             return Ok(result);
         }
 
-        [HttpGet("category/{id}")]
+        [HttpGet("category/{id:int}")]
         public async Task<IActionResult> GetCategory(int id)
         {
             var category = await _expenseService.GetCategoryByIdAsync(id);
@@ -116,14 +122,14 @@ namespace _3dlogyERP.Web.Controllers
             return Ok(categories);
         }
 
-        [HttpGet("categories/{parentId}/sub")]
+        [HttpGet("categories/{parentId:int}/sub")]
         public async Task<IActionResult> GetSubCategories(int parentId)
         {
             var categories = await _expenseService.GetSubCategoriesAsync(parentId);
             return Ok(categories);
         }
 
-        [HttpPut("category/{id}")]
+        [HttpPut("category/{id:int}")]
         public async Task<IActionResult> UpdateCategory(int id, [FromBody] ExpenseCategory category)
         {
             if (id != category.Id)
@@ -135,7 +141,7 @@ namespace _3dlogyERP.Web.Controllers
             return Ok();
         }
 
-        [HttpDelete("category/{id}")]
+        [HttpDelete("category/{id:int}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
             var result = await _expenseService.DeleteCategoryAsync(id);
@@ -152,7 +158,7 @@ namespace _3dlogyERP.Web.Controllers
             return Ok(total);
         }
 
-        [HttpGet("reports/category/{categoryId}/total")]
+        [HttpGet("reports/category/{categoryId:int}/total")]
         public async Task<IActionResult> GetTotalExpensesByCategory(int categoryId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
             var total = await _expenseService.GetTotalExpensesByCategoryAsync(categoryId, startDate, endDate);

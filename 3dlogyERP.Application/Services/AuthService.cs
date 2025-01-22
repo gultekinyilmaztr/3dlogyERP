@@ -1,5 +1,7 @@
 using _3dlogyERP.Application.DTOs;
+using _3dlogyERP.Core.Constants;
 using _3dlogyERP.Core.Entities;
+using _3dlogyERP.Core.Exceptions;
 using _3dlogyERP.Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -32,10 +34,10 @@ namespace _3dlogyERP.Application.Services
 
             var user = await GetUserByEmailAsync(request.Email);
             if (user == null || !user.IsActive)
-                throw new InvalidOperationException("Invalid credentials");
+                throw new ValidationException(ErrorMessages.InvalidCredentials);
 
             if (!await ValidatePasswordAsync(user, request.Password))
-                throw new InvalidOperationException("Invalid credentials");
+                throw new ValidationException(ErrorMessages.InvalidCredentials);
 
             user.LastLoginAt = DateTime.UtcNow;
             await _unitOfWork.CompleteAsync();
@@ -62,7 +64,7 @@ namespace _3dlogyERP.Application.Services
             // Check if email already exists
             var existingUser = await GetUserByEmailAsync(request.Email);
             if (existingUser != null)
-                throw new InvalidOperationException("Email already registered");
+                throw new ValidationException(ErrorMessages.EmailAlreadyExists);
 
             // Create user account
             var user = new User
@@ -89,7 +91,10 @@ namespace _3dlogyERP.Application.Services
 
         public async Task<User> GetUserById(int id)
         {
-            return await _unitOfWork.Users.GetByIdAsync(id);
+            var user = await _unitOfWork.Users.GetByIdAsync(id);
+            if (user == null)
+                throw new NotFoundException(ErrorMessages.UserNotFound);
+            return user;
         }
 
         private async Task<User> GetUserByEmailAsync(string email)
@@ -117,13 +122,13 @@ namespace _3dlogyERP.Application.Services
 
             var user = await _unitOfWork.Users.GetByIdAsync(userId);
             if (user == null)
-                throw new InvalidOperationException("User not found");
+                throw new NotFoundException(ErrorMessages.UserNotFound);
 
             if (!await ValidatePasswordAsync(user, request.CurrentPassword))
-                throw new InvalidOperationException("Current password is incorrect");
+                throw new ValidationException(ErrorMessages.InvalidPassword);
 
             if (request.NewPassword != request.ConfirmNewPassword)
-                throw new InvalidOperationException("New passwords do not match");
+                throw new ValidationException(ErrorMessages.PasswordsDoNotMatch);
 
             user.PasswordHash = BC.HashPassword(request.NewPassword);
             await _unitOfWork.CompleteAsync();

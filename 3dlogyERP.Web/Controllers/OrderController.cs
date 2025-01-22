@@ -3,6 +3,7 @@ using _3dlogyERP.Application.Services;
 using _3dlogyERP.Core.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace _3dlogyERP.Web.Controllers
 {
@@ -12,10 +13,15 @@ namespace _3dlogyERP.Web.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
+        private readonly ILogger<OrderController> _logger;
 
-        public OrderController(IOrderService orderService)
+        public OrderController(IOrderService orderService, ILogger<OrderController> logger)
         {
+            ArgumentNullException.ThrowIfNull(orderService);
+            ArgumentNullException.ThrowIfNull(logger);
+
             _orderService = orderService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -23,7 +29,11 @@ namespace _3dlogyERP.Web.Controllers
         {
             if (User.IsInRole(UserRoles.Customer))
             {
-                var customerId = int.Parse(User.FindFirst("CustomerId")?.Value ?? "0");
+                var customerIdClaim = User.FindFirst("CustomerId");
+                if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
+                {
+                    return BadRequest("Invalid customer ID in token");
+                }
                 var orders = await _orderService.GetCustomerOrdersAsync(customerId);
                 var orderDtos = orders.Select(order => new CustomerOrderListDTO
                 {
@@ -71,9 +81,11 @@ namespace _3dlogyERP.Web.Controllers
 
             if (User.IsInRole(UserRoles.Customer))
             {
-                var customerId = int.Parse(User.FindFirst("CustomerId")?.Value ?? "0");
-                if (order.CustomerId != customerId)
+                var customerIdClaim = User.FindFirst("CustomerId");
+                if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId) || order.CustomerId != customerId)
+                {
                     return Forbid();
+                }
 
                 var orderDto = new CustomerOrderListDTO
                 {
@@ -112,9 +124,15 @@ namespace _3dlogyERP.Web.Controllers
         [HttpPost]
         public async Task<ActionResult<Order>> CreateOrder([FromBody] Order order)
         {
+            ArgumentNullException.ThrowIfNull(order);
+
             if (User.IsInRole(UserRoles.Customer))
             {
-                var customerId = int.Parse(User.FindFirst("CustomerId")?.Value ?? "0");
+                var customerIdClaim = User.FindFirst("CustomerId");
+                if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
+                {
+                    return BadRequest("Invalid customer ID in token");
+                }
                 order.CustomerId = customerId;
             }
 
@@ -133,6 +151,8 @@ namespace _3dlogyERP.Web.Controllers
         [Authorize(Roles = "Admin,Staff")]
         public async Task<ActionResult> UpdateOrder(int id, [FromBody] Order order)
         {
+            ArgumentNullException.ThrowIfNull(order);
+
             if (id != order.Id)
                 return BadRequest();
 
@@ -151,6 +171,8 @@ namespace _3dlogyERP.Web.Controllers
         [Authorize(Roles = "Admin,Staff")]
         public async Task<ActionResult> UpdateOrderStatus(int id, [FromBody] OrderStatus status)
         {
+            ArgumentNullException.ThrowIfNull(status);
+
             try
             {
                 await _orderService.UpdateOrderStatusAsync(id, status);
@@ -166,6 +188,8 @@ namespace _3dlogyERP.Web.Controllers
         [Authorize(Roles = "Admin,Staff")]
         public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByStatus(OrderStatus status)
         {
+            ArgumentNullException.ThrowIfNull(status);
+
             var orders = await _orderService.GetOrdersByStatusAsync(status);
             return Ok(orders);
         }
