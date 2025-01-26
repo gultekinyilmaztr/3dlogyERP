@@ -7,15 +7,20 @@ namespace _3dlogyERP.Core.Entities
         public string Brand { get; set; }
         public int MaterialTypeId { get; set; }
         public string Color { get; set; }
-        public decimal CostPerKg { get; set; }
-        public decimal CurrentStock { get; set; } // in grams
-        public decimal MinimumStock { get; set; } // in grams
-        public decimal StockQuantity { get => CurrentStock; set => CurrentStock = value; } // Alias for CurrentStock
-        public string BatchNumber { get; set; }
+        public decimal UnitCost { get; set; }  // Birim maliyet
+        public decimal CurrentStock { get; set; }  // Mevcut stok miktarı (birime göre)
+        public decimal MinimumStock { get; set; }  // Minimum stok seviyesi
+        public decimal ReorderPoint { get; set; }  // Yeniden sipariş noktası
+        public string SKU { get; set; }  // Stok Takip Numarası
+        public string BatchNumber { get; set; }  // Parti numarası
         public bool IsActive { get; set; }
+        public decimal WeightPerUnit { get; set; }  // Birim başına ağırlık (gram)
+        public string Location { get; set; }  // Depo lokasyonu
+        public string Specifications { get; set; }  // Teknik özellikler
 
         // Navigation properties
         public virtual MaterialType MaterialType { get; set; }
         public virtual ICollection<OrderService> Services { get; set; }
+        public virtual ICollection<MaterialTransaction> Transactions { get; set; }
     }
 }

@@ -30,7 +30,7 @@ namespace _3dlogyERP.Application.Services
             ValidateInput(input);
 
             // Malzeme maliyeti
-            input.MaterialCost = CalculateMaterialCost(material.CostPerKg, input.MaterialUsed);
+            input.MaterialCost = CalculateMaterialCost(material.UnitCost, input.MaterialUsed);
 
             // Elektrik maliyeti
             input.ElectricityCost = CalculateElectricityCost(
@@ -69,7 +69,7 @@ namespace _3dlogyERP.Application.Services
 
         private void ValidateInput(PrintingCostCalculation input)
         {
-            if (input.Material == null || input.Material.CostPerKg <= 0)
+            if (input.Material == null || input.Material.UnitCost <= 0)
                 throw new ValidationException("Geçerli bir malzeme ve birim fiyat gerekli.");
 
             if (input.MaterialUsed <= 0)

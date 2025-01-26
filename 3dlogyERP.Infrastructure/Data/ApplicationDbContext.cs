@@ -17,6 +17,7 @@ namespace _3dlogyERP.Infrastructure.Data
         public DbSet<EquipmentType> EquipmentTypes { get; set; }
         public DbSet<Material> Materials { get; set; }
         public DbSet<MaterialType> MaterialTypes { get; set; }
+        public DbSet<MaterialTransaction> MaterialTransactions { get; set; }
         public DbSet<ServiceType> ServiceTypes { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
@@ -119,10 +120,16 @@ namespace _3dlogyERP.Infrastructure.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Brand).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.CostPerKg).HasPrecision(18, 2);
+                entity.Property(e => e.Color).HasMaxLength(50);
+                entity.Property(e => e.UnitCost).HasPrecision(18, 2);
                 entity.Property(e => e.CurrentStock).HasPrecision(18, 3);
                 entity.Property(e => e.MinimumStock).HasPrecision(18, 3);
+                entity.Property(e => e.ReorderPoint).HasPrecision(18, 3);
+                entity.Property(e => e.SKU).HasMaxLength(50);
                 entity.Property(e => e.BatchNumber).HasMaxLength(50);
+                entity.Property(e => e.WeightPerUnit).HasPrecision(18, 3);
+                entity.Property(e => e.Location).HasMaxLength(100);
+                entity.Property(e => e.Specifications).HasMaxLength(500);
 
                 entity.HasOne(d => d.MaterialType)
                     .WithMany(p => p.Materials)
@@ -136,7 +143,28 @@ namespace _3dlogyERP.Infrastructure.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.Category).IsRequired();
+                entity.Property(e => e.Unit).IsRequired();
                 entity.HasIndex(e => e.Name).IsUnique();
+            });
+
+            // MaterialTransaction configuration
+            modelBuilder.Entity<MaterialTransaction>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Type).IsRequired();
+                entity.Property(e => e.TransactionDate).IsRequired();
+                entity.Property(e => e.Quantity).HasPrecision(18, 3).IsRequired();
+                entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+                entity.Property(e => e.ReferenceNumber).HasMaxLength(50);
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.CreatedBy).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.CreatedAt).IsRequired();
+
+                entity.HasOne(d => d.Material)
+                    .WithMany(p => p.Transactions)
+                    .HasForeignKey(d => d.MaterialId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // ServiceType configuration

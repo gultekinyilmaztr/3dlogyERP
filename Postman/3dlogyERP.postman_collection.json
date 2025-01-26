@@ -29,11 +29,127 @@
 							"path": ["api", "auth", "login"]
 						}
 					}
+				},
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"newuser\",\n    \"password\": \"NewUser123!\",\n    \"email\": \"user@example.com\",\n    \"fullName\": \"New User\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"currentPassword\": \"OldPass123!\",\n    \"newPassword\": \"NewPass123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/change-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "change-password"]
+						}
+					}
 				}
 			]
 		},
 		{
-			"name": "Expenses",
+			"name": "Customer",
+			"item": [
+				{
+					"name": "Get All Customers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/customer",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "customer"]
+						}
+					}
+				},
+				{
+					"name": "Get Customer by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/customer/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "customer", "1"]
+						}
+					}
+				},
+				{
+					"name": "Update Customer",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": 1,\n    \"name\": \"Updated Customer Name\",\n    \"email\": \"updated@example.com\",\n    \"phone\": \"+905551234567\",\n    \"address\": \"Updated Address\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/customer/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "customer", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Expense",
 			"item": [
 				{
 					"name": "Create Expense",
@@ -48,7 +164,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"categoryId\": 1,\n    \"amount\": 1000,\n    \"description\": \"Test expense\",\n    \"expenseDate\": \"2025-01-22T00:00:00Z\",\n    \"supplier\": \"Test Supplier\",\n    \"receiptNumber\": \"REC001\",\n    \"paymentMethod\": \"Credit Card\"\n}",
+							"raw": "{\n    \"description\": \"Office Supplies\",\n    \"amount\": 150.50,\n    \"date\": \"2024-01-22T00:00:00Z\",\n    \"categoryId\": 1\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -63,25 +179,7 @@
 					}
 				},
 				{
-					"name": "Get All Expenses",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/expense",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "expense"]
-						}
-					}
-				},
-				{
-					"name": "Get Expense By Id",
+					"name": "Get Expense by ID",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -97,14 +195,78 @@
 							"path": ["api", "expense", "1"]
 						}
 					}
+				},
+				{
+					"name": "Get All Expenses",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/expense/expenses",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "expense", "expenses"]
+						}
+					}
+				},
+				{
+					"name": "Get Expenses by Date Range",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/expense/bydate?startDate=2024-01-01T00:00:00Z&endDate=2024-01-31T23:59:59Z",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "expense", "bydate"],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2024-01-01T00:00:00Z"
+								},
+								{
+									"key": "endDate",
+									"value": "2024-01-31T23:59:59Z"
+								}
+							]
+						}
+					}
 				}
 			]
 		},
 		{
-			"name": "Categories",
+			"name": "Order",
 			"item": [
 				{
-					"name": "Create Category",
+					"name": "Get Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/order",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "order"]
+						}
+					}
+				},
+				{
+					"name": "Create Order",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -116,7 +278,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Test Category\",\n    \"description\": \"Test Description\",\n    \"parentCategoryId\": null\n}",
+							"raw": "{\n    \"customerId\": 1,\n    \"requiresShipping\": true,\n    \"shippingAddress\": \"Shipping Address\",\n    \"services\": [\n        {\n            \"serviceTypeId\": 1,\n            \"description\": \"3D Printing Service\",\n            \"price\": 250.00\n        }\n    ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -124,16 +286,16 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/expense/category",
+							"raw": "{{baseUrl}}/api/order",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "expense", "category"]
+							"path": ["api", "order"]
 						}
 					}
 				},
 				{
-					"name": "Get All Categories",
+					"name": "Update Order Status",
 					"request": {
-						"method": "GET",
+						"method": "PUT",
 						"header": [
 							{
 								"key": "Authorization",
@@ -141,22 +303,31 @@
 								"type": "text"
 							}
 						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"InProgress\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": "{{baseUrl}}/api/expense/categories",
+							"raw": "{{baseUrl}}/api/order/1/status",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "expense", "categories"]
+							"path": ["api", "order", "1", "status"]
 						}
 					}
 				}
 			]
 		},
 		{
-			"name": "Reports",
+			"name": "PrintingCost",
 			"item": [
 				{
-					"name": "Get Total Expenses",
+					"name": "Calculate Printing Cost",
 					"request": {
-						"method": "GET",
+						"method": "POST",
 						"header": [
 							{
 								"key": "Authorization",
@@ -164,25 +335,51 @@
 								"type": "text"
 							}
 						],
-						"url": {
-							"raw": "{{baseUrl}}/api/expense/reports/total?startDate=2025-01-01T00:00:00Z&endDate=2025-12-31T23:59:59Z",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "expense", "reports", "total"],
-							"query": [
-								{
-									"key": "startDate",
-									"value": "2025-01-01T00:00:00Z"
-								},
-								{
-									"key": "endDate",
-									"value": "2025-12-31T23:59:59Z"
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"materialType\": \"PLA\",\n    \"materialWeight\": 100,\n    \"printTime\": 120,\n    \"electricityRate\": 0.85,\n    \"laborRate\": 50\n}",
+							"options": {
+								"raw": {
+									"language": "json"
 								}
-							]
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/printingcost/calculate",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "printingcost", "calculate"]
 						}
 					}
 				},
 				{
-					"name": "Get Expenses Summary",
+					"name": "Save Calculation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"materialType\": \"PLA\",\n    \"materialWeight\": 100,\n    \"printTime\": 120,\n    \"electricityRate\": 0.85,\n    \"laborRate\": 50,\n    \"totalCost\": 275.50\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/printingcost",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "printingcost"]
+						}
+					}
+				},
+				{
+					"name": "Get Calculation by ID",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -193,19 +390,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/expense/reports/summary?startDate=2025-01-01T00:00:00Z&endDate=2025-12-31T23:59:59Z",
+							"raw": "{{baseUrl}}/api/printingcost/1",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "expense", "reports", "summary"],
-							"query": [
-								{
-									"key": "startDate",
-									"value": "2025-01-01T00:00:00Z"
-								},
-								{
-									"key": "endDate",
-									"value": "2025-12-31T23:59:59Z"
-								}
-							]
+							"path": ["api", "printingcost", "1"]
 						}
 					}
 				}
@@ -217,14 +404,18 @@
 			"listen": "prerequest",
 			"script": {
 				"type": "text/javascript",
-				"exec": [""]
+				"exec": [
+					""
+				]
 			}
 		},
 		{
 			"listen": "test",
 			"script": {
 				"type": "text/javascript",
-				"exec": [""]
+				"exec": [
+					""
+				]
 			}
 		}
 	],

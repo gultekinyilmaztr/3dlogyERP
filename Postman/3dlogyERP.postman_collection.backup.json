@@ -1,0 +1,243 @@
+{
+	"info": {
+		"_postman_id": "3dlogy-erp-collection",
+		"name": "3dlogy ERP API",
+		"description": "3dlogy ERP sistemi için API koleksiyonu",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"Admin123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Expenses",
+			"item": [
+				{
+					"name": "Create Expense",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"categoryId\": 1,\n    \"amount\": 1000,\n    \"description\": \"Test expense\",\n    \"expenseDate\": \"2025-01-22T00:00:00Z\",\n    \"supplier\": \"Test Supplier\",\n    \"receiptNumber\": \"REC001\",\n    \"paymentMethod\": \"Credit Card\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/expense",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "expense"]
+						}
+					}
+				},
+				{
+					"name": "Get All Expenses",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/expense",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "expense"]
+						}
+					}
+				},
+				{
+					"name": "Get Expense By Id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/expense/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "expense", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Create Category",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Test Category\",\n    \"description\": \"Test Description\",\n    \"parentCategoryId\": null\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/expense/category",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "expense", "category"]
+						}
+					}
+				},
+				{
+					"name": "Get All Categories",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/expense/categories",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "expense", "categories"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Reports",
+			"item": [
+				{
+					"name": "Get Total Expenses",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/expense/reports/total?startDate=2025-01-01T00:00:00Z&endDate=2025-12-31T23:59:59Z",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "expense", "reports", "total"],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2025-01-01T00:00:00Z"
+								},
+								{
+									"key": "endDate",
+									"value": "2025-12-31T23:59:59Z"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Expenses Summary",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/expense/reports/summary?startDate=2025-01-01T00:00:00Z&endDate=2025-12-31T23:59:59Z",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "expense", "reports", "summary"],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2025-01-01T00:00:00Z"
+								},
+								{
+									"key": "endDate",
+									"value": "2025-12-31T23:59:59Z"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [""]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [""]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

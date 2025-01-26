@@ -14,6 +14,7 @@ namespace _3dlogyERP.Infrastructure.Data
         private IRepository<EquipmentType> _equipmentTypes;
         private IRepository<Material> _materials;
         private IRepository<MaterialType> _materialTypes;
+        private IRepository<MaterialTransaction> _materialTransactions;
         private IRepository<ServiceType> _serviceTypes;
         private IRepository<User> _users;
 
@@ -43,6 +44,9 @@ namespace _3dlogyERP.Infrastructure.Data
         public IRepository<MaterialType> MaterialTypes =>
             _materialTypes ??= new Repository<MaterialType>(_context);
 
+        public IRepository<MaterialTransaction> MaterialTransactions =>
+            _materialTransactions ??= new Repository<MaterialTransaction>(_context);
+
         public IRepository<ServiceType> ServiceTypes =>
             _serviceTypes ??= new Repository<ServiceType>(_context);
 
@@ -51,7 +55,7 @@ namespace _3dlogyERP.Infrastructure.Data
 
         public async Task<int> CompleteAsync()
         {
-            return await SaveChangesAsync();
+            return await _context.SaveChangesAsync();
         }
 
         public async Task<int> SaveChangesAsync()

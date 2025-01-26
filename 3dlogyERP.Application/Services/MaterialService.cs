@@ -45,10 +45,15 @@ namespace _3dlogyERP.Application.Services
             existingMaterial.Brand = material.Brand;
             existingMaterial.MaterialTypeId = material.MaterialTypeId;
             existingMaterial.Color = material.Color;
-            existingMaterial.CostPerKg = material.CostPerKg;
+            existingMaterial.UnitCost = material.UnitCost;
             existingMaterial.CurrentStock = material.CurrentStock;
             existingMaterial.MinimumStock = material.MinimumStock;
+            existingMaterial.ReorderPoint = material.ReorderPoint;
+            existingMaterial.SKU = material.SKU;
             existingMaterial.BatchNumber = material.BatchNumber;
+            existingMaterial.WeightPerUnit = material.WeightPerUnit;
+            existingMaterial.Location = material.Location;
+            existingMaterial.Specifications = material.Specifications;
             existingMaterial.IsActive = material.IsActive;
 
             _unitOfWork.Materials.Update(existingMaterial);

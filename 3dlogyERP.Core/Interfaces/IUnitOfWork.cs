@@ -11,6 +11,7 @@ namespace _3dlogyERP.Core.Interfaces
         IRepository<EquipmentType> EquipmentTypes { get; }
         IRepository<Material> Materials { get; }
         IRepository<MaterialType> MaterialTypes { get; }
+        IRepository<MaterialTransaction> MaterialTransactions { get; }
         IRepository<ServiceType> ServiceTypes { get; }
         IRepository<User> Users { get; }
 

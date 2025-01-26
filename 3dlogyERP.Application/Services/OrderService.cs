@@ -164,10 +164,12 @@ namespace _3dlogyERP.Application.Services
                     {
                         var material = await _unitOfWork.Materials.GetByIdAsync(service.MaterialId.Value);
                         if (material == null)
-                            throw new InvalidOperationException($"Malzeme bulunamadı: {service.MaterialId}");
+                            throw new InvalidOperationException($"Malzeme bulunamadı: {service.MaterialId.Value}");
 
-                        if (material.StockQuantity < service.MaterialQuantity)
-                            throw new InvalidOperationException($"Yetersiz stok. Mevcut: {material.StockQuantity}, İstenen: {service.MaterialQuantity}");
+                        if (material.CurrentStock < service.MaterialQuantity)
+                            throw new InvalidOperationException($"Yetersiz stok. Mevcut: {material.CurrentStock}, İstenen: {service.MaterialQuantity}");
+
+                        service.Material = material;
                     }
                 }
             }
@@ -267,7 +269,7 @@ namespace _3dlogyERP.Application.Services
                 // Calculate material costs
                 if (service.Material != null && service.MaterialQuantity > 0)
                 {
-                    totalCost += service.MaterialQuantity * service.Material.CostPerKg;
+                    totalCost += service.MaterialQuantity * service.Material.UnitCost;
                 }
 
                 // Add service base price
