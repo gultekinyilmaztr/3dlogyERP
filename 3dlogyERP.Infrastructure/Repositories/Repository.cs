@@ -26,6 +26,11 @@ namespace _3dlogyERP.Infrastructure.Repositories
             return await _dbSet.ToListAsync();
         }
 
+        public IQueryable<T> Query()
+        {
+            return _dbSet.AsQueryable();
+        }
+
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
         {
             return await _dbSet.Where(predicate).ToListAsync();
@@ -34,31 +39,26 @@ namespace _3dlogyERP.Infrastructure.Repositories
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
         }
 
         public async Task AddRangeAsync(IEnumerable<T> entities)
         {
             await _dbSet.AddRangeAsync(entities);
-            await _context.SaveChangesAsync();
         }
 
         public void Update(T entity)
         {
             _dbSet.Update(entity);
-            _context.SaveChanges();
         }
 
         public void Remove(T entity)
         {
             _dbSet.Remove(entity);
-            _context.SaveChanges();
         }
 
         public void RemoveRange(IEnumerable<T> entities)
         {
             _dbSet.RemoveRange(entities);
-            _context.SaveChanges();
         }
 
         public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)

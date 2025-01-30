@@ -1,8 +1,10 @@
-using _3dlogyERP.Application.DTOs;
-using _3dlogyERP.Application.Services;
+using _3dlogyERP.Application.Dtos.OrderDtos;
+using _3dlogyERP.Application.Interfaces;
 using _3dlogyERP.Core.Entities;
+using _3dlogyERP.Core.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace _3dlogyERP.Web.Controllers
 {
@@ -24,181 +26,243 @@ namespace _3dlogyERP.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<object>>> GetOrders()
+        public async Task<ActionResult<IEnumerable<OrderListDto>>> GetAllOrders()
         {
-            if (User.IsInRole(UserRoles.Customer))
+            try
             {
-                var customerIdClaim = User.FindFirst("CustomerId");
-                if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
+                if (User.IsInRole(UserRoles.Customer))
                 {
-                    return BadRequest("Invalid customer ID in token");
-                }
-                var orders = await _orderService.GetCustomerOrdersAsync(customerId);
-                var orderDtos = orders.Select(order => new CustomerOrderListDTO
-                {
-                    Id = order.Id,
-                    OrderNumber = order.OrderNumber,
-                    CreatedAt = order.CreatedAt,
-                    CompletedAt = order.CompletedAt,
-                    Status = order.Status.ToString(),
-                    FinalPrice = order.FinalPrice,
-                    RequiresShipping = order.RequiresShipping,
-                    TrackingNumber = order.TrackingNumber,
-                    Services = order.Services.Select(service => new CustomerOrderServiceDTO
+                    var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                    if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
                     {
-                        ServiceTypeName = service.ServiceType.Name,
-                        Description = service.Description,
-                        Price = service.Price,
-                        Status = order.Status.ToString(),
-                        StartTime = service.StartTime,
-                        EndTime = service.EndTime,
-                        EstimatedDuration = service.EstimatedDuration,
-                        MaterialUsage = service.MaterialId.HasValue ? new MaterialUsageDTO
-                        {
-                            MaterialName = service.Material.Name,
-                            MaterialTypeName = service.Material.MaterialType.Name,
-                            Color = service.Material.Color,
-                            Quantity = service.MaterialQuantity
-                        } : null
-                    }).ToList()
-                });
-                return Ok(orderDtos);
-            }
-            else
-            {
+                        return BadRequest("Invalid customer ID");
+                    }
+                    var customerOrders = await _orderService.GetCustomerOrdersAsync(customerId);
+                    return Ok(customerOrders);
+                }
+
                 var orders = await _orderService.GetAllOrdersAsync();
                 return Ok(orders);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting orders");
+                return StatusCode(500, "Internal server error");
+            }
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<object>> GetOrder(int id)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<OrderListDto>> GetOrderById(int id)
         {
-            var order = await _orderService.GetOrderByIdAsync(id);
-            if (order == null)
-                return NotFound();
-
-            if (User.IsInRole(UserRoles.Customer))
+            try
             {
-                var customerIdClaim = User.FindFirst("CustomerId");
-                if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId) || order.CustomerId != customerId)
+                var order = await _orderService.GetOrderByIdAsync(id);
+                if (order == null)
+                    return NotFound();
+
+                if (User.IsInRole(UserRoles.Customer))
                 {
-                    return Forbid();
+                    var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                    if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId) || order.CustomerId != customerId)
+                    {
+                        return Forbid();
+                    }
                 }
 
-                var orderDto = new CustomerOrderListDTO
-                {
-                    Id = order.Id,
-                    OrderNumber = order.OrderNumber,
-                    CreatedAt = order.CreatedAt,
-                    CompletedAt = order.CompletedAt,
-                    Status = order.Status.ToString(),
-                    FinalPrice = order.FinalPrice,
-                    RequiresShipping = order.RequiresShipping,
-                    TrackingNumber = order.TrackingNumber,
-                    Services = order.Services.Select(service => new CustomerOrderServiceDTO
-                    {
-                        ServiceTypeName = service.ServiceType.Name,
-                        Description = service.Description,
-                        Price = service.Price,
-                        Status = order.Status.ToString(),
-                        StartTime = service.StartTime,
-                        EndTime = service.EndTime,
-                        EstimatedDuration = service.EstimatedDuration,
-                        MaterialUsage = service.MaterialId.HasValue ? new MaterialUsageDTO
-                        {
-                            MaterialName = service.Material.Name,
-                            MaterialTypeName = service.Material.MaterialType.Name,
-                            Color = service.Material.Color,
-                            Quantity = service.MaterialQuantity
-                        } : null
-                    }).ToList()
-                };
-                return Ok(orderDto);
+                return Ok(order);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting order with ID: {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
+        }
 
-            return Ok(order);
+        [HttpGet("number/{orderNumber}")]
+        public async Task<ActionResult<OrderListDto>> GetOrderByNumber(string orderNumber)
+        {
+            try
+            {
+                var order = await _orderService.GetOrderByNumberAsync(orderNumber);
+                if (order == null)
+                    return NotFound();
+
+                if (User.IsInRole(UserRoles.Customer))
+                {
+                    var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                    if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId) || order.CustomerId != customerId)
+                    {
+                        return Forbid();
+                    }
+                }
+
+                return Ok(order);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting order with number: {OrderNumber}", orderNumber);
+                return StatusCode(500, "Internal server error");
+            }
         }
 
         [HttpPost]
-        public async Task<ActionResult<Order>> CreateOrder([FromBody] Order order)
+        public async Task<ActionResult<OrderListDto>> CreateOrder([FromBody] OrderCreateDto orderDto)
         {
-            ArgumentNullException.ThrowIfNull(order);
-
-            if (User.IsInRole(UserRoles.Customer))
+            try
             {
-                var customerIdClaim = User.FindFirst("CustomerId");
-                if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
+                if (User.IsInRole(UserRoles.Customer))
                 {
-                    return BadRequest("Invalid customer ID in token");
+                    var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                    if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
+                    {
+                        return BadRequest("Invalid customer ID");
+                    }
+                    orderDto.CustomerId = customerId;
                 }
-                order.CustomerId = customerId;
-            }
 
-            try
-            {
-                var createdOrder = await _orderService.CreateOrderAsync(order);
-                return CreatedAtAction(nameof(GetOrder), new { id = createdOrder.Id }, createdOrder);
+                var order = await _orderService.CreateOrderAsync(orderDto);
+                return CreatedAtAction(nameof(GetOrderById), new { id = order.Id }, order);
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                _logger.LogError(ex, "Error creating order");
+                return StatusCode(500, "Internal server error");
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin,Staff")]
-        public async Task<ActionResult> UpdateOrder(int id, [FromBody] Order order)
+        public async Task<ActionResult<OrderListDto>> UpdateOrder(int id, [FromBody] OrderUpdateDto orderDto)
         {
-            ArgumentNullException.ThrowIfNull(order);
-
-            if (id != order.Id)
-                return BadRequest();
-
             try
             {
-                await _orderService.UpdateOrderAsync(order);
-                return NoContent();
+                var updatedOrder = await _orderService.UpdateOrderAsync(id, orderDto);
+                if (updatedOrder == null)
+                    return NotFound();
+
+                return Ok(updatedOrder);
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                _logger.LogError(ex, "Error updating order with ID: {Id}", id);
+                return StatusCode(500, "Internal server error");
             }
         }
 
-        [HttpPut("{id}/status")]
+        [HttpPut("{id:int}/status")]
         [Authorize(Roles = "Admin,Staff")]
-        public async Task<ActionResult> UpdateOrderStatus(int id, [FromBody] OrderStatus status)
+        public async Task<ActionResult<OrderListDto>> UpdateOrderStatus(int id, [FromBody] OrderStatus status)
         {
-            ArgumentNullException.ThrowIfNull(status);
-
             try
             {
-                await _orderService.UpdateOrderStatusAsync(id, status);
+                var updatedOrder = await _orderService.UpdateOrderStatusAsync(id, status);
+                if (updatedOrder == null)
+                    return NotFound();
+
+                return Ok(updatedOrder);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating status for order with ID: {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpPost("{id:int}/cancel")]
+        public async Task<IActionResult> CancelOrder(int id)
+        {
+            try
+            {
+                if (User.IsInRole(UserRoles.Customer))
+                {
+                    var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                    if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
+                    {
+                        return BadRequest("Invalid customer ID");
+                    }
+
+                    var order = await _orderService.GetOrderByIdAsync(id);
+                    if (order == null)
+                        return NotFound();
+
+                    if (order.CustomerId != customerId)
+                        return Forbid();
+                }
+
+                var result = await _orderService.CancelOrderAsync(id);
+                if (!result)
+                    return NotFound();
+
                 return NoContent();
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                _logger.LogError(ex, "Error canceling order with ID: {Id}", id);
+                return StatusCode(500, "Internal server error");
             }
         }
 
         [HttpGet("by-status/{status}")]
         [Authorize(Roles = "Admin,Staff")]
-        public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByStatus(OrderStatus status)
+        public async Task<ActionResult<IEnumerable<OrderListDto>>> GetOrdersByStatus(OrderStatus status)
         {
-            ArgumentNullException.ThrowIfNull(status);
-
-            var orders = await _orderService.GetOrdersByStatusAsync(status);
-            return Ok(orders);
+            try
+            {
+                var orders = await _orderService.GetOrdersByStatusAsync(status);
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting orders by status: {Status}", status);
+                return StatusCode(500, "Internal server error");
+            }
         }
 
-        [HttpGet("{id}/cost")]
+        [HttpGet("{id:int}/total")]
+        public async Task<ActionResult<decimal>> CalculateOrderTotal(int id)
+        {
+            try
+            {
+                if (User.IsInRole(UserRoles.Customer))
+                {
+                    var customerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                    if (customerIdClaim == null || !int.TryParse(customerIdClaim.Value, out int customerId))
+                    {
+                        return BadRequest("Invalid customer ID");
+                    }
+
+                    var order = await _orderService.GetOrderByIdAsync(id);
+                    if (order == null)
+                        return NotFound();
+
+                    if (order.CustomerId != customerId)
+                        return Forbid();
+                }
+
+                var total = await _orderService.CalculateOrderTotalAsync(id);
+                return Ok(new { total });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating total for order with ID: {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("{id:int}/cost")]
         [Authorize(Roles = "Admin,Staff")]
         public async Task<ActionResult<decimal>> CalculateOrderCost(int id)
         {
-            var cost = await _orderService.CalculateOrderCostAsync(id);
-            return Ok(new { cost });
+            try
+            {
+                var cost = await _orderService.CalculateOrderCostAsync(id);
+                return Ok(new { cost });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating cost for order with ID: {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
         }
     }
 }

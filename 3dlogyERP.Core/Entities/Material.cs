@@ -1,3 +1,5 @@
+using _3dlogyERP.Core.Enums;
+
 namespace _3dlogyERP.Core.Entities
 {
     public class Material
@@ -19,6 +21,8 @@ namespace _3dlogyERP.Core.Entities
         public string Specifications { get; set; }  // Teknik özellikler
 
         // Navigation properties
+
+        public StockCategory StockCategory { get; set; }
         public virtual MaterialType MaterialType { get; set; }
         public virtual ICollection<OrderService> Services { get; set; }
         public virtual ICollection<MaterialTransaction> Transactions { get; set; }

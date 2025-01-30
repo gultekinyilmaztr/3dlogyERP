@@ -1,5 +1,5 @@
-using _3dlogyERP.Application.DTOs;
-using _3dlogyERP.Application.Services;
+using _3dlogyERP.Application.DTOs.AuthDtos;
+using _3dlogyERP.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,20 +1,7 @@
+using _3dlogyERP.Core.Enums;
+
 namespace _3dlogyERP.Core.Entities
 {
-    public enum StockCategory
-    {
-        Hammadde,
-        SarfMalzeme,
-        Mamul,
-        SabitKiymet
-    }
-
-    public enum UnitType
-    {
-        Gram,
-        Adet,
-        Metre,
-        Kilogram
-    }
 
     public class MaterialType
     {

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+    @await Component.InvokeAsync("_AdminLayoutHeadComponentPartial")
+</head>
+<body>
+    <div class="loader-bg">
+        <div class="loader-bar"></div>
+    </div>
+
+    <div id="pcoded" class="pcoded">
+        <div class="pcoded-overlay-box"></div>
+        <div class="pcoded-container navbar-wrapper">
+            @await Component.InvokeAsync("_AdminLayoutNavbarComponentPartial")
+            @await Component.InvokeAsync("_AdminLayoutChatRightSiderbarComponentPartial")
+
+            <div class="pcoded-main-container" style="min-height: 100vh;">
+                <div class="pcoded-wrapper">
+                    @await Component.InvokeAsync("_AdminLayoutSidebarComponentPartial")
+
+                    <div class="pcoded-content">
+                        <div class="pcoded-inner-content">
+                            <div class="main-body">
+                                <div class="page-wrapper">
+                                    @RenderBody()
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @await Component.InvokeAsync("_AdminLayoutScriptComponentPartial")
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

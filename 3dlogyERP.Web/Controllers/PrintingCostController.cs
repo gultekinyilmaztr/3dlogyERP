@@ -1,5 +1,5 @@
-using _3dlogyERP.Core.Entities.PrintingCost;
-using _3dlogyERP.Core.Interfaces;
+using _3dlogyERP.Application.Interfaces;
+using _3dlogyERP.Core.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

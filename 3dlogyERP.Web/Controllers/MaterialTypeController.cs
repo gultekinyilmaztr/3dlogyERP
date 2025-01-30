@@ -1,5 +1,4 @@
 using _3dlogyERP.Core.Entities;
-using _3dlogyERP.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace _3dlogyERP.Web.Controllers

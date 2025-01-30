@@ -17,6 +17,8 @@ namespace _3dlogyERP.Infrastructure.Data
         private IRepository<MaterialTransaction> _materialTransactions;
         private IRepository<ServiceType> _serviceTypes;
         private IRepository<User> _users;
+        private IRepository<Expense> _expenses;
+        private IRepository<ExpenseCategory> _expenseCategories;
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -52,6 +54,12 @@ namespace _3dlogyERP.Infrastructure.Data
 
         public IRepository<User> Users =>
             _users ??= new Repository<User>(_context);
+
+        public IRepository<Expense> Expenses =>
+            _expenses ??= new Repository<Expense>(_context);
+
+        public IRepository<ExpenseCategory> ExpenseCategories =>
+            _expenseCategories ??= new Repository<ExpenseCategory>(_context);
 
         public async Task<int> CompleteAsync()
         {

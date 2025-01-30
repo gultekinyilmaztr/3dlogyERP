@@ -1,5 +1,7 @@
+using _3dlogyERP.Application.Dtos.MaterialDtos;
+using _3dlogyERP.Application.Interfaces;
 using _3dlogyERP.Core.Entities;
-using _3dlogyERP.Core.Interfaces;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace _3dlogyERP.Web.Controllers
@@ -10,11 +12,13 @@ namespace _3dlogyERP.Web.Controllers
     {
         private readonly IMaterialService _materialService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public MaterialController(IMaterialService materialService, IUnitOfWork unitOfWork)
+        public MaterialController(IMaterialService materialService, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _materialService = materialService;
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -40,7 +44,8 @@ namespace _3dlogyERP.Web.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var createdMaterial = await _materialService.CreateMaterialAsync(material);
+            var materialDto = _mapper.Map<MaterialCreateDto>(material); // Material'ı MaterialCreateDto'ya dönüştür
+            var createdMaterial = await _materialService.CreateMaterialAsync(materialDto);
             return CreatedAtAction(nameof(Get), new { id = createdMaterial.Id }, createdMaterial);
         }
 
@@ -53,7 +58,8 @@ namespace _3dlogyERP.Web.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var updatedMaterial = await _materialService.UpdateMaterialAsync(material);
+            var materialDto = _mapper.Map<MaterialUpdateDto>(material); // Material'ı MaterialUpdateDto'ya dönüştür
+            var updatedMaterial = await _materialService.UpdateMaterialAsync(id, materialDto);
             if (updatedMaterial == null)
                 return NotFound();
 
@@ -121,5 +127,16 @@ namespace _3dlogyERP.Web.Controllers
             var transactions = await _unitOfWork.MaterialTransactions.FindAsync(t => t.MaterialId == id);
             return Ok(transactions);
         }
+
+        [HttpGet("ByStockCategory/{categoryId}")]
+        public async Task<ActionResult<IEnumerable<MaterialListDto>>> GetByStockCategory(int categoryId)
+        {
+            var materials = await _materialService.GetMaterialsByStockCategoryAsync(categoryId);
+            if (!materials.Any())
+                return NotFound();
+
+            return Ok(materials);
+        }
+
     }
 }

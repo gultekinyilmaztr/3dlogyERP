@@ -12,7 +12,6 @@ namespace _3dlogyERP.Infrastructure.Data
             using var context = new ApplicationDbContext(
                 serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>());
 
-            // Veritabanını oluştur
             await context.Database.MigrateAsync();
 
             // Kullanıcılar
@@ -48,6 +47,62 @@ namespace _3dlogyERP.Infrastructure.Data
                     new MaterialType { Name = "Reçine", Description = "3D Yazıcı Reçinesi" },
                     new MaterialType { Name = "Toz", Description = "3D Yazıcı Tozu" }
                 );
+                await context.SaveChangesAsync();
+            }
+
+            // Malzemeler
+            if (!context.Materials.Any())
+            {
+                var materialTypes = await context.MaterialTypes.ToListAsync();
+
+                context.Materials.AddRange(
+                     new Material
+                     {
+                         Name = "PLA Filament",
+                         Brand = "Ultimaker",
+                         MaterialTypeId = materialTypes.First(mt => mt.Name == "Filament").Id,
+                         Color = "Beyaz",
+                         UnitCost = 450.00m,
+                         CurrentStock = 50,
+                         MinimumStock = 10,
+                         SKU = "FIL-PLA-001",
+                         Location = "Depo-A1",
+                         IsActive = true,
+                         BatchNumber = "BATCH001",
+                         Specifications = "Çap: 1.75mm, Sıcaklık: 180-220°C, Yoğunluk: 1.24 g/cm³"
+                     },
+        new Material
+        {
+            Name = "PETG Filament",
+            Brand = "Prusament",
+            MaterialTypeId = materialTypes.First(mt => mt.Name == "Filament").Id,
+            Color = "Siyah",
+            UnitCost = 520.00m,
+            CurrentStock = 30,
+            MinimumStock = 5,
+            SKU = "FIL-PETG-001",
+            Location = "Depo-A2",
+            IsActive = true,
+            BatchNumber = "BATCH002",
+            Specifications = "Çap: 1.75mm, Sıcaklık: 230-250°C, Yoğunluk: 1.27 g/cm³"
+        },
+        new Material
+        {
+            Name = "Standard Reçine",
+            Brand = "Formlabs",
+            MaterialTypeId = materialTypes.First(mt => mt.Name == "Reçine").Id,
+            Color = "Gri",
+            UnitCost = 2800.00m,
+            CurrentStock = 10,
+            MinimumStock = 2,
+            SKU = "RES-STD-001",
+            Location = "Depo-B1",
+            IsActive = true,
+            BatchNumber = "BATCH003",
+            Specifications = "Viskozite: 850-900 cPs @ 25°C, Yoğunluk: 1.09-1.12 g/cm³, Dalga Boyu: 405nm"
+        }
+    );
+                await context.SaveChangesAsync();
             }
 
             // Ekipman Tipleri
@@ -58,6 +113,7 @@ namespace _3dlogyERP.Infrastructure.Data
                     new EquipmentType { Name = "CNC", Description = "CNC Makinesi" },
                     new EquipmentType { Name = "Tarayıcı", Description = "3D Tarayıcı" }
                 );
+                await context.SaveChangesAsync(); // Ekipman tiplerini kaydet
             }
 
             // Harcama Kategorileri
@@ -79,9 +135,8 @@ namespace _3dlogyERP.Infrastructure.Data
                     new ExpenseCategory { Name = "Maaş", Description = "Maaş Ödemeleri", ParentCategory = personel },
                     new ExpenseCategory { Name = "SGK", Description = "SGK Ödemeleri", ParentCategory = personel }
                 );
+                await context.SaveChangesAsync();
             }
-
-            await context.SaveChangesAsync();
         }
     }
 }

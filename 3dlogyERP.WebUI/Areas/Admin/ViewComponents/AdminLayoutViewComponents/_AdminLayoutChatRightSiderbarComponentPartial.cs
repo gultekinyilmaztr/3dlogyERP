@@ -8,6 +8,6 @@ namespace _3dlogyERP.WebUI.Areas.Admin.ViewComponents.AdminLayoutViewComponents
         {
             return View();
         }
-    
+
     }
 }

@@ -1,3 +1,5 @@
+using _3dlogyERP.Core.Enums;
+
 namespace _3dlogyERP.Core.Entities
 {
     public class Order
@@ -19,28 +21,8 @@ namespace _3dlogyERP.Core.Entities
 
         // Navigation properties
         public virtual Customer Customer { get; set; }
-        public virtual ICollection<OrderService> Services { get; set; }
-        public virtual ICollection<OrderDocument> Documents { get; set; }
-    }
-
-    public enum OrderStatus
-    {
-        New,
-        Quoted,
-        Approved,
-        InProgress,
-        ReadyForDelivery,
-        Shipped,
-        Completed,
-        Cancelled
-    }
-
-    public enum OrderSource
-    {
-        WebPortal,
-        Email,
-        Phone,
-        SocialMedia,
-        Direct
+        public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public virtual ICollection<OrderService> Services { get; set; } = new List<OrderService>();
+        public virtual ICollection<OrderDocument> Documents { get; set; } = new List<OrderDocument>();
     }
 }

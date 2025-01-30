@@ -1,5 +1,7 @@
-using _3dlogyERP.Application.Services;
+using _3dlogyERP.Application.Dtos.CustomerDtos;
+using _3dlogyERP.Application.Interfaces;
 using _3dlogyERP.Core.Entities;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +13,12 @@ namespace _3dlogyERP.Web.Controllers
     public class CustomerController : ControllerBase
     {
         private readonly ICustomerService _customerService;
+        private readonly IMapper _mapper;
 
-        public CustomerController(ICustomerService customerService)
+        public CustomerController(ICustomerService customerService, IMapper mapper)
         {
             _customerService = customerService;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -51,7 +55,9 @@ namespace _3dlogyERP.Web.Controllers
 
             try
             {
-                await _customerService.UpdateCustomerAsync(customer);
+
+                var customerDto = _mapper.Map<CustomerUpdateDto>(customer);
+                await _customerService.UpdateCustomerAsync(id, customerDto);
                 return NoContent();
             }
             catch (InvalidOperationException ex)

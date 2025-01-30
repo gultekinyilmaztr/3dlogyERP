@@ -1,65 +1,69 @@
+using _3dlogyERP.Application.Dtos.MaterialDtos;
+using _3dlogyERP.Application.Interfaces;
 using _3dlogyERP.Core.Entities;
-using _3dlogyERP.Core.Interfaces;
+using _3dlogyERP.Core.Enums;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace _3dlogyERP.Application.Services
 {
     public class MaterialService : IMaterialService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public MaterialService(IUnitOfWork unitOfWork)
+        public MaterialService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             ArgumentNullException.ThrowIfNull(unitOfWork);
+            ArgumentNullException.ThrowIfNull(mapper);
 
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        public async Task<Material> GetMaterialByIdAsync(int id)
+        public async Task<MaterialListDto> GetMaterialByIdAsync(int id)
         {
-            return await _unitOfWork.Materials.GetByIdAsync(id);
+            var material = await _unitOfWork.Materials
+                .Query()
+                .Include(m => m.MaterialType)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            return _mapper.Map<MaterialListDto>(material);
         }
 
-        public async Task<IEnumerable<Material>> GetAllMaterialsAsync()
+        public async Task<IEnumerable<MaterialListDto>> GetAllMaterialsAsync()
         {
-            return await _unitOfWork.Materials.GetAllAsync();
+            var materials = await _unitOfWork.Materials
+                .Query()
+                .Include(m => m.MaterialType)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<MaterialListDto>>(materials);
         }
 
-        public async Task<Material> CreateMaterialAsync(Material material)
+        public async Task<MaterialListDto> CreateMaterialAsync(MaterialCreateDto materialDto)
         {
-            ArgumentNullException.ThrowIfNull(material);
+            ArgumentNullException.ThrowIfNull(materialDto);
 
+            var material = _mapper.Map<Material>(materialDto);
             await _unitOfWork.Materials.AddAsync(material);
             await _unitOfWork.SaveChangesAsync();
-            return material;
+
+            return await GetMaterialByIdAsync(material.Id);
         }
 
-        public async Task<Material> UpdateMaterialAsync(Material material)
+        public async Task<MaterialListDto> UpdateMaterialAsync(int id, MaterialUpdateDto materialDto)
         {
-            ArgumentNullException.ThrowIfNull(material);
+            ArgumentNullException.ThrowIfNull(materialDto);
 
-            var existingMaterial = await _unitOfWork.Materials.GetByIdAsync(material.Id);
+            var existingMaterial = await _unitOfWork.Materials.GetByIdAsync(id);
             if (existingMaterial == null)
                 return null;
 
-            existingMaterial.Name = material.Name;
-            existingMaterial.Brand = material.Brand;
-            existingMaterial.MaterialTypeId = material.MaterialTypeId;
-            existingMaterial.Color = material.Color;
-            existingMaterial.UnitCost = material.UnitCost;
-            existingMaterial.CurrentStock = material.CurrentStock;
-            existingMaterial.MinimumStock = material.MinimumStock;
-            existingMaterial.ReorderPoint = material.ReorderPoint;
-            existingMaterial.SKU = material.SKU;
-            existingMaterial.BatchNumber = material.BatchNumber;
-            existingMaterial.WeightPerUnit = material.WeightPerUnit;
-            existingMaterial.Location = material.Location;
-            existingMaterial.Specifications = material.Specifications;
-            existingMaterial.IsActive = material.IsActive;
-
-            _unitOfWork.Materials.Update(existingMaterial);
+            _mapper.Map(materialDto, existingMaterial);
             await _unitOfWork.SaveChangesAsync();
 
-            return existingMaterial;
+            return await GetMaterialByIdAsync(id);
         }
 
         public async Task<bool> DeleteMaterialAsync(int id)
@@ -70,28 +74,36 @@ namespace _3dlogyERP.Application.Services
 
             _unitOfWork.Materials.Remove(material);
             await _unitOfWork.SaveChangesAsync();
-
             return true;
         }
 
-        public async Task<IEnumerable<Material>> GetMaterialsByTypeAsync(int materialTypeId)
+        public async Task<bool> ExistsByIdAsync(int id)
         {
-            return await _unitOfWork.Materials.FindAsync(m => m.MaterialTypeId == materialTypeId);
+            return await _unitOfWork.Materials
+                .Query()
+                .AnyAsync(m => m.Id == id);
         }
 
-        public async Task<bool> UpdateMaterialStockAsync(int id, int quantity)
+        public async Task UpdateMaterialStockAsync(int id, int newStock)
         {
-            ArgumentNullException.ThrowIfNull(quantity);
-
             var material = await _unitOfWork.Materials.GetByIdAsync(id);
-            if (material == null)
-                return false;
+            if (material != null)
+            {
+                material.CurrentStock = newStock;
+                await _unitOfWork.SaveChangesAsync();
+            }
+        }
 
-            material.CurrentStock = quantity;
-            _unitOfWork.Materials.Update(material);
-            await _unitOfWork.SaveChangesAsync();
+        public async Task<IEnumerable<MaterialListDto>> GetMaterialsByStockCategoryAsync(int stockCategoryId)
+        {
+            var stockCategory = (StockCategory)stockCategoryId;
+            var materials = await _unitOfWork.Materials
+                .Query()
+                .Include(m => m.MaterialType)
+                .Where(m => m.StockCategory == stockCategory)
+                .ToListAsync();
 
-            return true;
+            return _mapper.Map<IEnumerable<MaterialListDto>>(materials);
         }
     }
 }

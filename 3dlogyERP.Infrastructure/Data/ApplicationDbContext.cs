@@ -22,6 +22,7 @@ namespace _3dlogyERP.Infrastructure.Data
         public DbSet<User> Users { get; set; }
         public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
         public DbSet<Expense> Expenses { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

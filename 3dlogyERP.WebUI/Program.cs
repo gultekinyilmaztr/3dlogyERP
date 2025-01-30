@@ -3,7 +3,13 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// HTTP Client Factory'yi ekle
+builder.Services.AddHttpClient();
+
 var app = builder.Build();
+
+// Statik dosyalarýn sunulmasýný saðla
+app.UseStaticFiles();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -32,6 +38,5 @@ app.UseEndpoints(endpoints =>
       pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
     );
 });
-
 
 app.Run();

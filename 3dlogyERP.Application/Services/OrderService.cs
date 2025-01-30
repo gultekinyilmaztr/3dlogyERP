@@ -1,27 +1,31 @@
+using _3dlogyERP.Application.Dtos.OrderDtos;
+using _3dlogyERP.Application.Interfaces;
 using _3dlogyERP.Core.Entities;
-using _3dlogyERP.Core.Enums;
-using _3dlogyERP.Core.Interfaces;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using OrderStatus = _3dlogyERP.Core.Enums.OrderStatus;
 
 namespace _3dlogyERP.Application.Services
 {
     public class OrderService : IOrderService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public OrderService(IUnitOfWork unitOfWork)
+        public OrderService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             ArgumentNullException.ThrowIfNull(unitOfWork);
+            ArgumentNullException.ThrowIfNull(mapper);
 
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
-        public async Task<Order> CreateOrderAsync(Order order)
+        public async Task<OrderListDto> CreateOrderAsync(OrderCreateDto orderDto)
         {
-            ArgumentNullException.ThrowIfNull(order);
+            ArgumentNullException.ThrowIfNull(orderDto);
 
-            if (order == null)
-                throw new ArgumentNullException(nameof(order));
-
+            var order = _mapper.Map<Order>(orderDto);
             order.CreatedAt = DateTime.UtcNow;
             order.UpdatedAt = DateTime.UtcNow;
             order.Status = OrderStatus.New;
@@ -30,40 +34,48 @@ namespace _3dlogyERP.Application.Services
             await _unitOfWork.Orders.AddAsync(order);
             await _unitOfWork.SaveChangesAsync();
 
-            return order;
+            return await GetOrderByIdAsync(order.Id);
         }
 
-        public async Task<Order> GetOrderByIdAsync(int id)
+        public async Task<OrderListDto> GetOrderByIdAsync(int id)
         {
-            return await _unitOfWork.Orders.GetByIdAsync(id);
+            var order = await _unitOfWork.Orders
+                .Query()
+                .Include(o => o.Customer)
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            return _mapper.Map<OrderListDto>(order);
         }
 
-        public async Task<Order> GetOrderByNumberAsync(string orderNumber)
+        public async Task<OrderListDto> GetOrderByNumberAsync(string orderNumber)
         {
             ArgumentNullException.ThrowIfNull(orderNumber);
 
-            if (string.IsNullOrEmpty(orderNumber))
-                throw new ArgumentNullException(nameof(orderNumber));
+            var order = await _unitOfWork.Orders
+                .Query()
+                .Include(o => o.Customer)
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
 
-            var orders = await _unitOfWork.Orders.FindAsync(o => o.OrderNumber == orderNumber);
-            return orders.FirstOrDefault();
+            return _mapper.Map<OrderListDto>(order);
         }
 
-        public async Task<Order> UpdateOrderAsync(Order order)
+        public async Task<OrderListDto> UpdateOrderAsync(int id, OrderUpdateDto orderDto)
         {
-            ArgumentNullException.ThrowIfNull(order);
+            ArgumentNullException.ThrowIfNull(orderDto);
 
-            var existingOrder = await _unitOfWork.Orders.GetByIdAsync(order.Id);
+            var existingOrder = await _unitOfWork.Orders.GetByIdAsync(id);
             if (existingOrder == null)
                 return null;
 
-            existingOrder.Status = order.Status;
+            _mapper.Map(orderDto, existingOrder);
             existingOrder.UpdatedAt = DateTime.UtcNow;
 
             _unitOfWork.Orders.Update(existingOrder);
             await _unitOfWork.SaveChangesAsync();
 
-            return existingOrder;
+            return await GetOrderByIdAsync(id);
         }
 
         public async Task<bool> DeleteOrderAsync(int id)
@@ -74,16 +86,22 @@ namespace _3dlogyERP.Application.Services
 
             _unitOfWork.Orders.Remove(order);
             await _unitOfWork.SaveChangesAsync();
-
             return true;
         }
 
-        public async Task<IEnumerable<Order>> GetCustomerOrdersAsync(int customerId)
+        public async Task<IEnumerable<OrderListDto>> GetCustomerOrdersAsync(int customerId)
         {
-            return await _unitOfWork.Orders.FindAsync(o => o.CustomerId == customerId);
+            var orders = await _unitOfWork.Orders
+                .Query()
+                .Include(o => o.Customer)
+                .Include(o => o.OrderItems)
+                .Where(o => o.CustomerId == customerId)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<OrderListDto>>(orders);
         }
 
-        public async Task<Order> UpdateOrderStatusAsync(int orderId, OrderStatus status)
+        public async Task<OrderListDto> UpdateOrderStatusAsync(int orderId, OrderStatus status)
         {
             var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
             if (order == null)
@@ -92,191 +110,118 @@ namespace _3dlogyERP.Application.Services
             order.Status = status;
             order.UpdatedAt = DateTime.UtcNow;
 
-            if (status == OrderStatus.Completed)
-            {
-                order.CompletedAt = DateTime.UtcNow;
-            }
-
             _unitOfWork.Orders.Update(order);
             await _unitOfWork.SaveChangesAsync();
 
-            return order;
+            return await GetOrderByIdAsync(orderId);
         }
 
         public async Task<decimal> CalculateOrderTotalAsync(int orderId)
         {
-            var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
+            var order = await _unitOfWork.Orders
+                .Query()
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
             if (order == null)
                 return 0;
 
-            var services = await _unitOfWork.OrderServices.FindAsync(s => s.OrderId == orderId);
-            return services.Sum(s => s.TotalCost);
+            return order.OrderItems.Sum(item => item.Quantity * item.UnitPrice);
         }
 
-        public async Task<Order> ProcessNewOrderAsync(Order order)
+        public async Task<OrderListDto> ProcessNewOrderAsync(OrderCreateDto orderDto)
         {
-            ArgumentNullException.ThrowIfNull(order);
-
-            if (order == null)
-                throw new ArgumentNullException(nameof(order));
-
-            // Validate customer exists
-            var customer = await _unitOfWork.Customers.GetByIdAsync(order.CustomerId);
-            if (customer == null)
-                throw new InvalidOperationException("Müşteri bulunamadı.");
-
-            // Initialize order properties
-            order.Status = OrderStatus.New;
-            order.CreatedAt = DateTime.UtcNow;
-            order.UpdatedAt = DateTime.UtcNow;
-            order.OrderNumber = await GenerateOrderNumberAsync();
-
-            // Validate and process services
-            if (order.Services != null && order.Services.Any())
+            var order = await CreateOrderAsync(orderDto);
+            if (order != null)
             {
-                foreach (var service in order.Services)
-                {
-                    // Validate service type
-                    if (service.ServiceTypeId <= 0)
-                        throw new InvalidOperationException("Geçersiz servis tipi.");
-
-                    var serviceType = await _unitOfWork.ServiceTypes.GetByIdAsync(service.ServiceTypeId);
-                    if (serviceType == null)
-                        throw new InvalidOperationException($"Servis tipi bulunamadı: {service.ServiceTypeId}");
-
-                    // Set initial service status
-                    service.Status = ServiceStatus.Pending;
-                    service.CreatedAt = DateTime.UtcNow;
-
-                    // Validate equipment if specified
-                    if (service.EquipmentId.HasValue)
-                    {
-                        var equipment = await _unitOfWork.Equipment.GetByIdAsync(service.EquipmentId.Value);
-                        if (equipment == null)
-                            throw new InvalidOperationException($"Ekipman bulunamadı: {service.EquipmentId}");
-
-                        if (!equipment.IsAvailable)
-                            throw new InvalidOperationException($"Ekipman müsait değil: {equipment.Name}");
-                    }
-
-                    // Validate material if specified
-                    if (service.MaterialId.HasValue)
-                    {
-                        var material = await _unitOfWork.Materials.GetByIdAsync(service.MaterialId.Value);
-                        if (material == null)
-                            throw new InvalidOperationException($"Malzeme bulunamadı: {service.MaterialId.Value}");
-
-                        if (material.CurrentStock < service.MaterialQuantity)
-                            throw new InvalidOperationException($"Yetersiz stok. Mevcut: {material.CurrentStock}, İstenen: {service.MaterialQuantity}");
-
-                        service.Material = material;
-                    }
-                }
+                await UpdateOrderStatusAsync(order.Id, OrderStatus.Processing);
+                // Additional processing logic here
             }
-            else
-            {
-                throw new InvalidOperationException("Sipariş en az bir servis içermelidir.");
-            }
-
-            // Calculate initial cost
-            order.FinalPrice = await CalculateOrderCostAsync(order.Id);
-
-            // Save order
-            await _unitOfWork.Orders.AddAsync(order);
-            await _unitOfWork.SaveChangesAsync();
-
-            // Return the created order
             return order;
         }
 
         public async Task<bool> CancelOrderAsync(int orderId)
         {
             var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
-            if (order == null)
+            if (order == null || order.Status == OrderStatus.Completed)
                 return false;
 
             order.Status = OrderStatus.Cancelled;
             order.UpdatedAt = DateTime.UtcNow;
 
+            _unitOfWork.Orders.Update(order);
             await _unitOfWork.SaveChangesAsync();
-
             return true;
         }
 
         public async Task<string> GenerateOrderNumberAsync()
         {
-            var today = DateTime.UtcNow.Date;
-            var tomorrow = today.AddDays(1);
-
-            // Get all orders from today to ensure proper sequence
-            var todaysOrders = await _unitOfWork.Orders
-                .FindAsync(o => o.CreatedAt >= today && o.CreatedAt < tomorrow);
+            var date = DateTime.UtcNow.ToString("yyyyMMdd");
+            var lastOrder = await _unitOfWork.Orders
+                .Query()
+                .Where(o => o.OrderNumber.StartsWith(date))
+                .OrderByDescending(o => o.OrderNumber)
+                .FirstOrDefaultAsync();
 
             int sequence = 1;
-            if (todaysOrders.Any())
+            if (lastOrder != null)
             {
-                // Extract the sequence numbers from today's orders
-                var sequences = todaysOrders
-                    .Select(o => int.TryParse(o.OrderNumber.Substring(8), out int seq) ? seq : 0)
-                    .Where(seq => seq > 0);
-
-                // Get the highest sequence number and increment
-                if (sequences.Any())
-                {
-                    sequence = sequences.Max() + 1;
-                }
+                var lastSequence = int.Parse(lastOrder.OrderNumber.Substring(8));
+                sequence = lastSequence + 1;
             }
 
-            // Format: ORD + YYYYMMDD + 5-digit sequence
-            string orderNumber = $"ORD{today:yyyyMMdd}{sequence:D5}";
-
-            // Verify uniqueness (in case of concurrent operations)
-            while (await GetOrderByNumberAsync(orderNumber) != null)
-            {
-                sequence++;
-                orderNumber = $"ORD{today:yyyyMMdd}{sequence:D5}";
-            }
-
-            return orderNumber;
+            return $"{date}{sequence:D4}";
         }
 
-        public async Task<IEnumerable<Order>> GetAllOrdersAsync()
+        public async Task<IEnumerable<OrderListDto>> GetAllOrdersAsync()
         {
-            return await _unitOfWork.Orders.GetAllAsync();
+            var orders = await _unitOfWork.Orders
+                .Query()
+                .Include(o => o.Customer)
+                .Include(o => o.OrderItems)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<OrderListDto>>(orders);
         }
 
-        public async Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status)
+        public async Task<IEnumerable<OrderListDto>> GetOrdersByStatusAsync(OrderStatus status)
         {
-            return await _unitOfWork.Orders.FindAsync(o => o.Status == status);
+            var orders = await _unitOfWork.Orders
+                .Query()
+                .Include(o => o.Customer)
+                .Include(o => o.OrderItems)
+                .Where(o => o.Status == status)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<OrderListDto>>(orders);
         }
 
         public async Task<decimal> CalculateOrderCostAsync(int orderId)
         {
-            var order = await GetOrderByIdAsync(orderId);
+            var order = await _unitOfWork.Orders
+                .Query()
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
             if (order == null)
                 return 0;
 
             decimal totalCost = 0;
-            foreach (var service in order.Services)
+            foreach (var item in order.OrderItems)
             {
-                // Calculate equipment costs
-                if (service.Equipment != null)
-                {
-                    var equipmentHours = (service.EndTime - service.StartTime)?.TotalHours ?? 0;
-                    totalCost += (decimal)equipmentHours * (service.Equipment.HourlyRate + service.Equipment.MaintenanceCostPerHour + service.Equipment.ElectricityConsumptionPerHour);
-                }
-
-                // Calculate material costs
-                if (service.Material != null && service.MaterialQuantity > 0)
-                {
-                    totalCost += service.MaterialQuantity * service.Material.UnitCost;
-                }
-
-                // Add service base price
-                totalCost += service.Price;
+                // Maliyet hesaplama mantığı burada uygulanacak
+                var itemCost = item.Quantity * item.UnitCost; // UnitCost eklenmeli
+                totalCost += itemCost;
             }
 
             return totalCost;
+        }
+
+        public async Task<bool> ExistsByIdAsync(int id)
+        {
+            return await _unitOfWork.Orders
+                .Query()
+                .AnyAsync(o => o.Id == id);
         }
     }
 }

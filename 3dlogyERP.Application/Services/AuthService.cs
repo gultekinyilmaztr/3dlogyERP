@@ -1,8 +1,9 @@
-using _3dlogyERP.Application.DTOs;
+using _3dlogyERP.Application.Dtos.UserDtos;
+using _3dlogyERP.Application.DTOs.AuthDtos;
+using _3dlogyERP.Application.Interfaces;
 using _3dlogyERP.Core.Constants;
 using _3dlogyERP.Core.Entities;
 using _3dlogyERP.Core.Exceptions;
-using _3dlogyERP.Core.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -168,6 +169,11 @@ namespace _3dlogyERP.Application.Services
             using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
+        }
+
+        Task<UserListDto> IAuthService.GetUserById(int id)
+        {
+            throw new NotImplementedException();
         }
     }
 }

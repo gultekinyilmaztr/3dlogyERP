@@ -17,7 +17,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.1")
+                .HasAnnotation("ProductVersion", "9.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -412,6 +412,9 @@ namespace _3dlogyERP.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<int>("StockCategory")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("UnitCost")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -607,6 +610,54 @@ namespace _3dlogyERP.Infrastructure.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("OrderDocument");
+                });
+
+            modelBuilder.Entity("_3dlogyERP.Core.Entities.OrderItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Discount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("MaterialId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MaterialId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.OrderService", b =>
@@ -864,6 +915,25 @@ namespace _3dlogyERP.Infrastructure.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("_3dlogyERP.Core.Entities.OrderItem", b =>
+                {
+                    b.HasOne("_3dlogyERP.Core.Entities.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("_3dlogyERP.Core.Entities.Order", "Order")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Material");
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("_3dlogyERP.Core.Entities.OrderService", b =>
                 {
                     b.HasOne("_3dlogyERP.Core.Entities.Equipment", "Equipment")
@@ -938,6 +1008,8 @@ namespace _3dlogyERP.Infrastructure.Migrations
             modelBuilder.Entity("_3dlogyERP.Core.Entities.Order", b =>
                 {
                     b.Navigation("Documents");
+
+                    b.Navigation("OrderItems");
 
                     b.Navigation("Services");
                 });
