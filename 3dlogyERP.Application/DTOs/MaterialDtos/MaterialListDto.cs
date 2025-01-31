@@ -7,7 +7,7 @@ namespace _3dlogyERP.Application.Dtos.MaterialDtos
         public string Name { get; set; }
         public string Brand { get; set; }
         public int MaterialTypeId { get; set; }
-        public string StockCategory { get; set; }
+        public string StockCategoryCode { get; set; }
         public string Color { get; set; }
         public decimal UnitCost { get; set; }  // Birim maliyet
         public decimal CurrentStock { get; set; }  // Mevcut stok miktarý (birime göre)
@@ -19,7 +19,6 @@ namespace _3dlogyERP.Application.Dtos.MaterialDtos
         public decimal WeightPerUnit { get; set; }  // Birim baþýna aðýrlýk (gram)
         public string Location { get; set; }  // Depo lokasyonu
         public string Specifications { get; set; }  // Teknik özellikler
-        //public string MaterialTypeName { get; set; }
         public string StockStatus => CurrentStock <= MinimumStock ? "Kritik Stok" : "Normal";
     }
 }

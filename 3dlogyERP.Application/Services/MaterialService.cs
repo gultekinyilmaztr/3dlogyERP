@@ -1,7 +1,6 @@
 using _3dlogyERP.Application.Dtos.MaterialDtos;
 using _3dlogyERP.Application.Interfaces;
 using _3dlogyERP.Core.Entities;
-using _3dlogyERP.Core.Enums;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -94,13 +93,12 @@ namespace _3dlogyERP.Application.Services
             }
         }
 
-        public async Task<IEnumerable<MaterialListDto>> GetMaterialsByStockCategoryAsync(int stockCategoryId)
+        public async Task<IEnumerable<MaterialListDto>> GetMaterialsByStockCategoryAsync(string stockCategoryCode)
         {
-            var stockCategory = (StockCategory)stockCategoryId;
             var materials = await _unitOfWork.Materials
                 .Query()
                 .Include(m => m.MaterialType)
-                .Where(m => m.StockCategory == stockCategory)
+                .Where(m => m.StockCategoryCode == stockCategoryCode)
                 .ToListAsync();
 
             return _mapper.Map<IEnumerable<MaterialListDto>>(materials);

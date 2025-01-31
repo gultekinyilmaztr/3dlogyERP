@@ -1,7 +1,6 @@
-﻿using _3dlogyERP.Application.Interfaces;
-using _3dlogyERP.Core.Enums;
-using _3dlogyERP.WebUI.Dtos.MaterialDtos;
+﻿using _3dlogyERP.WebUI.Dtos.MaterialDtos;
 using _3dlogyERP.WebUI.Dtos.MaterialTypeDtos;
+using _3dlogyERP.WebUI.Dtos.StockCategoryDtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
@@ -45,27 +44,32 @@ public class MaterialController : Controller
     public async Task<IActionResult> CreateMaterial()
     {
         var client = _httpClientFactory.CreateClient();
-        var responseMessage = await client.GetAsync($"{_baseUrl}/MaterialType");
 
-        if (responseMessage.IsSuccessStatusCode)
+        // Malzeme Tiplerini Getir
+        var typeResponse = await client.GetAsync($"{_baseUrl}/MaterialType");
+        if (typeResponse.IsSuccessStatusCode)
         {
-            var jsonData = await responseMessage.Content.ReadAsStringAsync();
-            var types = JsonConvert.DeserializeObject<List<MaterialTypeListDto>>(jsonData);
-            ViewBag.MaterialTypes = (from x in types
-                                     select new SelectListItem
-                                     {
-                                         Text = x.Name,
-                                         Value = x.Id.ToString()
-                                     }).ToList();
+            var typeData = await typeResponse.Content.ReadAsStringAsync();
+            var types = JsonConvert.DeserializeObject<List<MaterialTypeListDto>>(typeData);
+            ViewBag.MaterialTypes = types.Select(x => new SelectListItem
+            {
+                Text = x.Name,
+                Value = x.Id.ToString()
+            }).ToList();
         }
 
-        ViewBag.StockCategories = Enum.GetValues(typeof(StockCategory))
-            .Cast<StockCategory>()
-            .Select(x => new SelectListItem
+        // Stok Kategorilerini API'den Getir
+        var stockCategoryResponse = await client.GetAsync($"{_baseUrl}/StockCategory");
+        if (stockCategoryResponse.IsSuccessStatusCode)
+        {
+            var stockCategoryData = await stockCategoryResponse.Content.ReadAsStringAsync();
+            var stockCategories = JsonConvert.DeserializeObject<List<StockCategoryListDto>>(stockCategoryData);
+            ViewBag.StockCategories = stockCategories.Select(x => new SelectListItem
             {
-                Text = x.GetDescription(),
-                Value = ((int)x).ToString()
+                Text = x.Name,
+                Value = x.Code
             }).ToList();
+        }
 
         return View();
     }
@@ -77,33 +81,40 @@ public class MaterialController : Controller
         if (!ModelState.IsValid)
         {
             var client = _httpClientFactory.CreateClient();
+
+            // Malzeme Tiplerini Getir
             var typeResponse = await client.GetAsync($"{_baseUrl}/MaterialType");
             if (typeResponse.IsSuccessStatusCode)
             {
                 var typeData = await typeResponse.Content.ReadAsStringAsync();
                 var types = JsonConvert.DeserializeObject<List<MaterialTypeListDto>>(typeData);
-                ViewBag.MaterialTypes = (from x in types
-                                         select new SelectListItem
-                                         {
-                                             Text = x.Name,
-                                             Value = x.Id.ToString()
-                                         }).ToList();
+                ViewBag.MaterialTypes = types.Select(x => new SelectListItem
+                {
+                    Text = x.Name,
+                    Value = x.Id.ToString()
+                }).ToList();
             }
 
-            ViewBag.StockCategories = Enum.GetValues(typeof(StockCategory))
-                .Cast<StockCategory>()
-                .Select(x => new SelectListItem
+            // Stok Kategorilerini API'den Getir
+            var stockCategoryResponse = await client.GetAsync($"{_baseUrl}/StockCategory");
+            if (stockCategoryResponse.IsSuccessStatusCode)
+            {
+                var stockCategoryData = await stockCategoryResponse.Content.ReadAsStringAsync();
+                var stockCategories = JsonConvert.DeserializeObject<List<StockCategoryListDto>>(stockCategoryData);
+                ViewBag.StockCategories = stockCategories.Select(x => new SelectListItem
                 {
-                    Text = x.GetDescription(),
-                    Value = ((int)x).ToString()
+                    Text = x.Name,
+                    Value = x.Code
                 }).ToList();
+            }
 
             return View(createMaterialDto);
         }
 
+        // Yeni Malzeme Ekleme
         var postClient = _httpClientFactory.CreateClient();
         var jsonData = JsonConvert.SerializeObject(createMaterialDto);
-        StringContent stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
+        var stringContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
         var responseMessage = await postClient.PostAsync($"{_baseUrl}/Material", stringContent);
 
         if (responseMessage.IsSuccessStatusCode)
@@ -115,6 +126,7 @@ public class MaterialController : Controller
         TempData["Error"] = "Malzeme eklenirken bir hata oluştu";
         return View(createMaterialDto);
     }
+
 
     [HttpPost]
     [Route("MalzemeSil/{id}")]
@@ -139,46 +151,6 @@ public class MaterialController : Controller
             return Json(new { success = false });
         }
     }
-
-    [HttpGet]
-    [Route("MalzemeDuzenle/{id}")]
-    public async Task<IActionResult> UpdateMaterial(int id)
-    {
-        var client = _httpClientFactory.CreateClient();
-
-        var typeResponse = await client.GetAsync($"{_baseUrl}/MaterialType");
-        if (typeResponse.IsSuccessStatusCode)
-        {
-            var typeData = await typeResponse.Content.ReadAsStringAsync();
-            var types = JsonConvert.DeserializeObject<List<MaterialTypeListDto>>(typeData);
-            ViewBag.MaterialTypes = (from x in types
-                                     select new SelectListItem
-                                     {
-                                         Text = x.Name,
-                                         Value = x.Id.ToString()
-                                     }).ToList();
-        }
-
-        ViewBag.StockCategories = Enum.GetValues(typeof(StockCategory))
-            .Cast<StockCategory>()
-            .Select(x => new SelectListItem
-            {
-                Text = x.GetDescription(),
-                Value = ((int)x).ToString()
-            }).ToList();
-
-        var materialResponse = await client.GetAsync($"{_baseUrl}/Material/{id}");
-        if (materialResponse.IsSuccessStatusCode)
-        {
-            var jsonData = await materialResponse.Content.ReadAsStringAsync();
-            var material = JsonConvert.DeserializeObject<MaterialUpdateDto>(jsonData);
-            return View(material);
-        }
-
-        TempData["Error"] = "Malzeme bulunamadı";
-        return RedirectToAction("Index");
-    }
-
     [HttpPost]
     [Route("MalzemeDuzenle/{id}")]
     public async Task<IActionResult> UpdateMaterial(MaterialUpdateDto updateMaterialDto)
@@ -186,30 +158,37 @@ public class MaterialController : Controller
         if (!ModelState.IsValid)
         {
             var client = _httpClientFactory.CreateClient();
+
+            // Malzeme Tiplerini Getir
             var typeResponse = await client.GetAsync($"{_baseUrl}/MaterialType");
             if (typeResponse.IsSuccessStatusCode)
             {
                 var typeData = await typeResponse.Content.ReadAsStringAsync();
                 var types = JsonConvert.DeserializeObject<List<MaterialTypeListDto>>(typeData);
-                ViewBag.MaterialTypes = (from x in types
-                                         select new SelectListItem
-                                         {
-                                             Text = x.Name,
-                                             Value = x.Id.ToString()
-                                         }).ToList();
+                ViewBag.MaterialTypes = types.Select(x => new SelectListItem
+                {
+                    Text = x.Name,
+                    Value = x.Id.ToString()
+                }).ToList();
             }
 
-            ViewBag.StockCategories = Enum.GetValues(typeof(StockCategory))
-                .Cast<StockCategory>()
-                .Select(x => new SelectListItem
+            // Stok Kategorilerini API'den Getir
+            var stockCategoryResponse = await client.GetAsync($"{_baseUrl}/StockCategory");
+            if (stockCategoryResponse.IsSuccessStatusCode)
+            {
+                var stockCategoryData = await stockCategoryResponse.Content.ReadAsStringAsync();
+                var stockCategories = JsonConvert.DeserializeObject<List<StockCategoryListDto>>(stockCategoryData);
+                ViewBag.StockCategories = stockCategories.Select(x => new SelectListItem
                 {
-                    Text = x.GetDescription(),
-                    Value = ((int)x).ToString()
+                    Text = x.Name,  // Kullanıcıya görünen isim
+                    Value = x.Code  // Seçildiğinde gönderilecek değer
                 }).ToList();
+            }
 
             return View(updateMaterialDto);
         }
 
+        // Güncelleme işlemi
         var putClient = _httpClientFactory.CreateClient();
         var jsonData = JsonConvert.SerializeObject(updateMaterialDto);
         var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
@@ -227,15 +206,14 @@ public class MaterialController : Controller
         return View(updateMaterialDto);
     }
 
+
     [HttpGet]
-    [Route("StokKategori/{categoryId}")]
-    public async Task<IActionResult> GetByStockCategory(int categoryId)
+    [Route("StokKategori/{categoryCode}")]
+    public async Task<IActionResult> GetByStockCategory(string categoryCode)
     {
         var client = _httpClientFactory.CreateClient();
 
-        ViewBag.CategoryName = ((StockCategory)categoryId).GetDescription();
-
-        var responseMessage = await client.GetAsync($"{_baseUrl}/Material/ByStockCategory/{categoryId}");
+        var responseMessage = await client.GetAsync($"{_baseUrl}/Material/by-stock-category/{categoryCode}");
         if (responseMessage.IsSuccessStatusCode)
         {
             var jsonData = await responseMessage.Content.ReadAsStringAsync();

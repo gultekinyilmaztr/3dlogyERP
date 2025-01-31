@@ -1,5 +1,3 @@
-using _3dlogyERP.Core.Enums;
-
 namespace _3dlogyERP.Core.Entities
 {
     public class Material
@@ -8,6 +6,7 @@ namespace _3dlogyERP.Core.Entities
         public string Name { get; set; }
         public string Brand { get; set; }
         public int MaterialTypeId { get; set; }
+        public string StockCategoryCode { get; set; }
         public string Color { get; set; }
         public decimal UnitCost { get; set; }  // Birim maliyet
         public decimal CurrentStock { get; set; }  // Mevcut stok miktarı (birime göre)

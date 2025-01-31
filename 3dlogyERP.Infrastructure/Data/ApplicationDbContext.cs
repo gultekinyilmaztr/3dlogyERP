@@ -13,7 +13,7 @@ namespace _3dlogyERP.Infrastructure.Data
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderService> OrderServices { get; set; }
-        public DbSet<Equipment> Equipment { get; set; }
+        public DbSet<Equipment> Equipments { get; set; }
         public DbSet<EquipmentType> EquipmentTypes { get; set; }
         public DbSet<Material> Materials { get; set; }
         public DbSet<MaterialType> MaterialTypes { get; set; }
@@ -23,6 +23,7 @@ namespace _3dlogyERP.Infrastructure.Data
         public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
         public DbSet<Expense> Expenses { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<StockCategory> StockCategories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -136,6 +137,12 @@ namespace _3dlogyERP.Infrastructure.Data
                     .WithMany(p => p.Materials)
                     .HasForeignKey(d => d.MaterialTypeId)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                // StockCategory iliþkisi eklendi
+                entity.HasOne(d => d.StockCategory)
+                    .WithMany(p => p.Materials)
+                    .HasForeignKey(d => d.StockCategoryCode)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // MaterialType configuration
@@ -144,7 +151,7 @@ namespace _3dlogyERP.Infrastructure.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.Category).IsRequired();
+                entity.Property(e => e.StockCategory).IsRequired();
                 entity.Property(e => e.Unit).IsRequired();
                 entity.HasIndex(e => e.Name).IsUnique();
             });
@@ -190,6 +197,7 @@ namespace _3dlogyERP.Infrastructure.Data
                 entity.HasIndex(e => e.Email).IsUnique();
                 entity.HasIndex(e => e.Username).IsUnique();
             });
+
         }
     }
 }

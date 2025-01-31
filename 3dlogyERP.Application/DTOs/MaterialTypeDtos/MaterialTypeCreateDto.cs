@@ -1,3 +1,4 @@
+using _3dlogyERP.Core.Entities;
 using _3dlogyERP.Core.Enums;
 using System.ComponentModel.DataAnnotations;
 

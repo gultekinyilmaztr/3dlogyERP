@@ -1,4 +1,5 @@
 using _3dlogyERP.Core.Entities;
+using _3dlogyERP.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using BC = BCrypt.Net.BCrypt;
@@ -37,15 +38,86 @@ namespace _3dlogyERP.Infrastructure.Data
                         CreatedAt = DateTime.UtcNow
                     }
                 );
+                await context.SaveChangesAsync();
+            }
+
+            // Stok Kategorileri
+            if (!context.StockCategories.Any())
+            {
+                var categories = new List<StockCategory>
+                {
+                    new StockCategory
+                    {
+                        Name = "Hammadde",
+                        Code = "HM",
+                        Description = "Ham malzemeler",
+                        IsActive = true
+                    },
+                    new StockCategory
+                    {
+                        Name = "Yarı Mamul",
+                        Code = "YM",
+                        Description = "Yarı işlenmiş malzemeler",
+                        IsActive = true
+                    },
+                    new StockCategory
+                    {
+                        Name = "Mamul Madde",
+                        Code = "MM",
+                        Description = "Tamamlanmış ürünler",
+                        IsActive = true
+                    },
+                    new StockCategory
+                    {
+                        Name = "Sarf Malzeme",
+                        Code = "SM",
+                        Description = "Tüketim malzemeleri",
+                        IsActive = true
+                    },
+                    new StockCategory
+                    {
+                        Name = "Yedek Parça",
+                        Code = "YP",
+                        Description = "Yedek parçalar",
+                        IsActive = true
+                    }
+                };
+
+                context.StockCategories.AddRange(categories);
+                await context.SaveChangesAsync();
             }
 
             // Malzeme Tipleri
             if (!context.MaterialTypes.Any())
             {
+                var hammaddeCategory = await context.StockCategories.FirstAsync(sc => sc.Code == "HM");
+                var sarfCategory = await context.StockCategories.FirstAsync(sc => sc.Code == "SM");
+
                 context.MaterialTypes.AddRange(
-                    new MaterialType { Name = "Filament", Description = "3D Yazıcı Filamenti" },
-                    new MaterialType { Name = "Reçine", Description = "3D Yazıcı Reçinesi" },
-                    new MaterialType { Name = "Toz", Description = "3D Yazıcı Tozu" }
+                    new MaterialType
+                    {
+                        Name = "Filament",
+                        Description = "3D Yazıcı Filamenti",
+                        StockCategoryId = hammaddeCategory.Id,
+                        Unit = UnitType.Kilogram,
+                        IsActive = true
+                    },
+                    new MaterialType
+                    {
+                        Name = "Reçine",
+                        Description = "3D Yazıcı Reçinesi",
+                        StockCategoryId = hammaddeCategory.Id,
+                        Unit = UnitType.Gram,
+                        IsActive = true
+                    },
+                    new MaterialType
+                    {
+                        Name = "Toz",
+                        Description = "3D Yazıcı Tozu",
+                        StockCategoryId = hammaddeCategory.Id,
+                        Unit = UnitType.Kilogram,
+                        IsActive = true
+                    }
                 );
                 await context.SaveChangesAsync();
             }
@@ -54,54 +126,58 @@ namespace _3dlogyERP.Infrastructure.Data
             if (!context.Materials.Any())
             {
                 var materialTypes = await context.MaterialTypes.ToListAsync();
+                var hammaddeCategory = await context.StockCategories.FirstAsync(sc => sc.Code == "HM");
 
                 context.Materials.AddRange(
-                     new Material
-                     {
-                         Name = "PLA Filament",
-                         Brand = "Ultimaker",
-                         MaterialTypeId = materialTypes.First(mt => mt.Name == "Filament").Id,
-                         Color = "Beyaz",
-                         UnitCost = 450.00m,
-                         CurrentStock = 50,
-                         MinimumStock = 10,
-                         SKU = "FIL-PLA-001",
-                         Location = "Depo-A1",
-                         IsActive = true,
-                         BatchNumber = "BATCH001",
-                         Specifications = "Çap: 1.75mm, Sıcaklık: 180-220°C, Yoğunluk: 1.24 g/cm³"
-                     },
-        new Material
-        {
-            Name = "PETG Filament",
-            Brand = "Prusament",
-            MaterialTypeId = materialTypes.First(mt => mt.Name == "Filament").Id,
-            Color = "Siyah",
-            UnitCost = 520.00m,
-            CurrentStock = 30,
-            MinimumStock = 5,
-            SKU = "FIL-PETG-001",
-            Location = "Depo-A2",
-            IsActive = true,
-            BatchNumber = "BATCH002",
-            Specifications = "Çap: 1.75mm, Sıcaklık: 230-250°C, Yoğunluk: 1.27 g/cm³"
-        },
-        new Material
-        {
-            Name = "Standard Reçine",
-            Brand = "Formlabs",
-            MaterialTypeId = materialTypes.First(mt => mt.Name == "Reçine").Id,
-            Color = "Gri",
-            UnitCost = 2800.00m,
-            CurrentStock = 10,
-            MinimumStock = 2,
-            SKU = "RES-STD-001",
-            Location = "Depo-B1",
-            IsActive = true,
-            BatchNumber = "BATCH003",
-            Specifications = "Viskozite: 850-900 cPs @ 25°C, Yoğunluk: 1.09-1.12 g/cm³, Dalga Boyu: 405nm"
-        }
-    );
+                    new Material
+                    {
+                        Name = "PLA Filament",
+                        Brand = "Ultimaker",
+                        MaterialTypeId = materialTypes.First(mt => mt.Name == "Filament").Id,
+                        StockCategoryCode = hammaddeCategory.Code,
+                        Color = "Beyaz",
+                        UnitCost = 450.00m,
+                        CurrentStock = 50,
+                        MinimumStock = 10,
+                        SKU = "FIL-PLA-001",
+                        Location = "Depo-A1",
+                        IsActive = true,
+                        BatchNumber = "BATCH001",
+                        Specifications = "Çap: 1.75mm, Sıcaklık: 180-220°C, Yoğunluk: 1.24 g/cm³"
+                    },
+                    new Material
+                    {
+                        Name = "PETG Filament",
+                        Brand = "Prusament",
+                        MaterialTypeId = materialTypes.First(mt => mt.Name == "Filament").Id,
+                        StockCategoryCode = hammaddeCategory.Code,
+                        Color = "Siyah",
+                        UnitCost = 520.00m,
+                        CurrentStock = 30,
+                        MinimumStock = 5,
+                        SKU = "FIL-PETG-001",
+                        Location = "Depo-A2",
+                        IsActive = true,
+                        BatchNumber = "BATCH002",
+                        Specifications = "Çap: 1.75mm, Sıcaklık: 230-250°C, Yoğunluk: 1.27 g/cm³"
+                    },
+                    new Material
+                    {
+                        Name = "Standard Reçine",
+                        Brand = "Formlabs",
+                        MaterialTypeId = materialTypes.First(mt => mt.Name == "Reçine").Id,
+                        StockCategoryCode = hammaddeCategory.Code,
+                        Color = "Gri",
+                        UnitCost = 2800.00m,
+                        CurrentStock = 10,
+                        MinimumStock = 2,
+                        SKU = "RES-STD-001",
+                        Location = "Depo-B1",
+                        IsActive = true,
+                        BatchNumber = "BATCH003",
+                        Specifications = "Viskozite: 850-900 cPs @ 25°C, Yoğunluk: 1.09-1.12 g/cm³, Dalga Boyu: 405nm"
+                    }
+                );
                 await context.SaveChangesAsync();
             }
 
@@ -113,7 +189,7 @@ namespace _3dlogyERP.Infrastructure.Data
                     new EquipmentType { Name = "CNC", Description = "CNC Makinesi" },
                     new EquipmentType { Name = "Tarayıcı", Description = "3D Tarayıcı" }
                 );
-                await context.SaveChangesAsync(); // Ekipman tiplerini kaydet
+                await context.SaveChangesAsync();
             }
 
             // Harcama Kategorileri

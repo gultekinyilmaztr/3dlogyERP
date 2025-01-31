@@ -11,6 +11,6 @@ namespace _3dlogyERP.Application.Interfaces
         Task<bool> DeleteMaterialAsync(int id);
         Task<bool> ExistsByIdAsync(int id);
         Task UpdateMaterialStockAsync(int id, int newStock);
-        Task<IEnumerable<MaterialListDto>> GetMaterialsByStockCategoryAsync(int stockCategoryId);
+        Task<IEnumerable<MaterialListDto>> GetMaterialsByStockCategoryAsync(string stockCategoryCode);
     }
 }

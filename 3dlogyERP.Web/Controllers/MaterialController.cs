@@ -128,13 +128,10 @@ namespace _3dlogyERP.Web.Controllers
             return Ok(transactions);
         }
 
-        [HttpGet("ByStockCategory/{categoryId}")]
-        public async Task<ActionResult<IEnumerable<MaterialListDto>>> GetByStockCategory(int categoryId)
+        [HttpGet("by-stock-category/{stockCategoryCode}")]
+        public async Task<ActionResult<IEnumerable<MaterialListDto>>> GetMaterialsByStockCategory(string stockCategoryCode)
         {
-            var materials = await _materialService.GetMaterialsByStockCategoryAsync(categoryId);
-            if (!materials.Any())
-                return NotFound();
-
+            var materials = await _materialService.GetMaterialsByStockCategoryAsync(stockCategoryCode);
             return Ok(materials);
         }
 

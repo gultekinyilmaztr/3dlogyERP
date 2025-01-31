@@ -7,7 +7,6 @@ using _3dlogyERP.Application.Dtos.OrderDtos;
 using _3dlogyERP.Application.Dtos.UserDtos;
 using _3dlogyERP.Core.Entities;
 using AutoMapper;
-using _3dlogyERP.Core.Enums;
 
 
 namespace _3dlogyERP.Application.Mapping
@@ -38,17 +37,11 @@ namespace _3dlogyERP.Application.Mapping
             CreateMap<Expense, ExpenseUpdateDto>();
 
             // Material mappings
-            CreateMap<Material, MaterialListDto>()
-            .ForMember(dest => dest.StockCategory, opt => opt.MapFrom(src => src.StockCategory.GetDescription()));
+            CreateMap<Material, MaterialListDto>();
+            CreateMap<MaterialCreateDto, Material>();
+            CreateMap<MaterialUpdateDto, Material>();
+            CreateMap<Material, MaterialUpdateDto>();
 
-            CreateMap<MaterialCreateDto, Material>()
-                .ForMember(dest => dest.StockCategory, opt => opt.MapFrom(src => src.StockCategory));
-
-            CreateMap<MaterialUpdateDto, Material>()
-                .ForMember(dest => dest.StockCategory, opt => opt.MapFrom(src => src.StockCategory));
-
-            CreateMap<Material, MaterialUpdateDto>()
-                .ForMember(dest => dest.StockCategory, opt => opt.MapFrom(src => src.StockCategory));
 
             // MaterialType mappings
             CreateMap<MaterialType, MaterialTypeListDto>();

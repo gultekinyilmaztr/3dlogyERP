@@ -1,6 +1,4 @@
-using _3dlogyERP.Core.Enums;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 namespace _3dlogyERP.Application.Dtos.MaterialDtos
 {
@@ -17,8 +15,7 @@ namespace _3dlogyERP.Application.Dtos.MaterialDtos
         public int MaterialTypeId { get; set; }
 
         [Required(ErrorMessage = "Stok Tipi zorunludur")]
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public StockCategory StockCategory { get; set; }
+        public string StockCategoryCode { get; set; }
 
         public string Color { get; set; }
 

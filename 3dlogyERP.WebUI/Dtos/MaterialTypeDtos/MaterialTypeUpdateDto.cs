@@ -13,7 +13,7 @@ namespace _3dlogyERP.WebUI.Dtos.MaterialTypeDtos
         public string Description { get; set; }
 
         [Required(ErrorMessage = "Stok kategorisi zorunludur")]
-        public StockCategory Category { get; set; }
+        public string StockCategoryCode { get; set; }
 
         [Required(ErrorMessage = "Birim tipi zorunludur")]
         public UnitType Unit { get; set; }
