@@ -138,11 +138,12 @@ namespace _3dlogyERP.Infrastructure.Data
                     .HasForeignKey(d => d.MaterialTypeId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                // StockCategory ili�kisi eklendi
+                // StockCategory ilişkisi güncellendi
                 entity.HasOne(d => d.StockCategory)
                     .WithMany(p => p.Materials)
-                    .HasForeignKey(d => d.StockCategoryCode)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .HasForeignKey(d => d.StockCategoryId)
+                    .IsRequired(false)  // Foreign key'i optional yapıyoruz
+                    .OnDelete(DeleteBehavior.SetNull);  // StockCategory silindiğinde null'a set et
             });
 
             // MaterialType configuration
@@ -151,9 +152,15 @@ namespace _3dlogyERP.Infrastructure.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.StockCategory).IsRequired();
                 entity.Property(e => e.Unit).IsRequired();
                 entity.HasIndex(e => e.Name).IsUnique();
+
+                // StockCategory ilişkisini optional olarak tanımlıyoruz
+                entity.HasOne(mt => mt.StockCategory)
+                    .WithMany(sc => sc.MaterialTypes)
+                    .HasForeignKey(mt => mt.StockCategoryId)
+                    .IsRequired(false)  // Foreign key'i optional yapıyoruz
+                    .OnDelete(DeleteBehavior.SetNull);  // StockCategory silindiğinde null'a set et
             });
 
             // MaterialTransaction configuration
@@ -197,7 +204,6 @@ namespace _3dlogyERP.Infrastructure.Data
                 entity.HasIndex(e => e.Email).IsUnique();
                 entity.HasIndex(e => e.Username).IsUnique();
             });
-
         }
     }
 }

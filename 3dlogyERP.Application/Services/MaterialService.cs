@@ -25,6 +25,7 @@ namespace _3dlogyERP.Application.Services
             var material = await _unitOfWork.Materials
                 .Query()
                 .Include(m => m.MaterialType)
+                .Include(m => m.StockCategory)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             return _mapper.Map<MaterialListDto>(material);
@@ -35,6 +36,7 @@ namespace _3dlogyERP.Application.Services
             var materials = await _unitOfWork.Materials
                 .Query()
                 .Include(m => m.MaterialType)
+                .Include(m => m.StockCategory)
                 .ToListAsync();
 
             return _mapper.Map<IEnumerable<MaterialListDto>>(materials);
@@ -93,12 +95,13 @@ namespace _3dlogyERP.Application.Services
             }
         }
 
-        public async Task<IEnumerable<MaterialListDto>> GetMaterialsByStockCategoryAsync(string stockCategoryCode)
+        public async Task<IEnumerable<MaterialListDto>> GetMaterialsByStockCategoryAsync(int stockCategoryId)
         {
             var materials = await _unitOfWork.Materials
                 .Query()
                 .Include(m => m.MaterialType)
-                .Where(m => m.StockCategoryCode == stockCategoryCode)
+                .Include(m => m.StockCategory)
+                .Where(m => m.StockCategoryId == stockCategoryId)
                 .ToListAsync();
 
             return _mapper.Map<IEnumerable<MaterialListDto>>(materials);

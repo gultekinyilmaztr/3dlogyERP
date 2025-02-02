@@ -15,6 +15,7 @@ public interface IUnitOfWork : IDisposable
     IRepository<User> Users { get; }
     IRepository<Expense> Expenses { get; }
     IRepository<ExpenseCategory> ExpenseCategories { get; }
+    IRepository<StockCategory> StockCategories { get; }
 
     Task<int> SaveChangesAsync();
     Task<int> CompleteAsync();

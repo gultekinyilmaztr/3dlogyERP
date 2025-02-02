@@ -6,7 +6,6 @@ namespace _3dlogyERP.Core.Entities
         public string Name { get; set; }
         public string Brand { get; set; }
         public int MaterialTypeId { get; set; }
-        public string StockCategoryCode { get; set; }
         public string Color { get; set; }
         public decimal UnitCost { get; set; }  // Birim maliyet
         public decimal CurrentStock { get; set; }  // Mevcut stok miktarı (birime göre)
@@ -19,9 +18,11 @@ namespace _3dlogyERP.Core.Entities
         public string Location { get; set; }  // Depo lokasyonu
         public string Specifications { get; set; }  // Teknik özellikler
 
-        // Navigation properties
+        // Foreign key ve navigation property
+        public int? StockCategoryId { get; set; }
+        public virtual StockCategory? StockCategory { get; set; }
 
-        public StockCategory StockCategory { get; set; }
+        // Diğer navigation properties
         public virtual MaterialType MaterialType { get; set; }
         public virtual ICollection<OrderService> Services { get; set; }
         public virtual ICollection<MaterialTransaction> Transactions { get; set; }

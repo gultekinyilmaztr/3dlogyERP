@@ -1,3 +1,8 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,37 +11,47 @@ builder.Services.AddControllersWithViews();
 // HTTP Client Factory'yi ekle
 builder.Services.AddHttpClient();
 
+// Swagger'Ä± ekle
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo 
+    { 
+        Title = "3dlogy ERP API", 
+        Version = "v1",
+        Description = "3dlogy ERP API Documentation"
+    });
+});
+
 var app = builder.Build();
 
-// Statik dosyalarýn sunulmasýný saðla
+// Statik dosyalarÄ±n sunulmasÄ±nÄ± saÄŸla
 app.UseStaticFiles();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+else 
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapStaticAssets();
+// Area route'unu ekle
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
+// Default route'u ekle
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
-
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllerRoute(
-      name: "areas",
-      pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
-    );
-});
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

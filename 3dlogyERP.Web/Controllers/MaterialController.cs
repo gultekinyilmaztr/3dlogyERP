@@ -44,7 +44,15 @@ namespace _3dlogyERP.Web.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var materialDto = _mapper.Map<MaterialCreateDto>(material); // Material'ı MaterialCreateDto'ya dönüştür
+            // StockCategory kontrolü
+            if (material.StockCategoryId.HasValue)
+            {
+                var stockCategory = await _unitOfWork.StockCategories.GetByIdAsync(material.StockCategoryId.Value);
+                if (stockCategory == null)
+                    return BadRequest($"StockCategory with id {material.StockCategoryId} not found.");
+            }
+
+            var materialDto = _mapper.Map<MaterialCreateDto>(material);
             var createdMaterial = await _materialService.CreateMaterialAsync(materialDto);
             return CreatedAtAction(nameof(Get), new { id = createdMaterial.Id }, createdMaterial);
         }
@@ -58,7 +66,15 @@ namespace _3dlogyERP.Web.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var materialDto = _mapper.Map<MaterialUpdateDto>(material); // Material'ı MaterialUpdateDto'ya dönüştür
+            // StockCategory kontrolü
+            if (material.StockCategoryId.HasValue)
+            {
+                var stockCategory = await _unitOfWork.StockCategories.GetByIdAsync(material.StockCategoryId.Value);
+                if (stockCategory == null)
+                    return BadRequest($"StockCategory with id {material.StockCategoryId} not found.");
+            }
+
+            var materialDto = _mapper.Map<MaterialUpdateDto>(material);
             var updatedMaterial = await _materialService.UpdateMaterialAsync(id, materialDto);
             if (updatedMaterial == null)
                 return NotFound();
@@ -128,10 +144,15 @@ namespace _3dlogyERP.Web.Controllers
             return Ok(transactions);
         }
 
-        [HttpGet("by-stock-category/{stockCategoryCode}")]
-        public async Task<ActionResult<IEnumerable<MaterialListDto>>> GetMaterialsByStockCategory(string stockCategoryCode)
+        [HttpGet("by-stock-category/{stockCategoryId}")]
+        public async Task<ActionResult<IEnumerable<MaterialListDto>>> GetMaterialsByStockCategory(int stockCategoryId)
         {
-            var materials = await _materialService.GetMaterialsByStockCategoryAsync(stockCategoryCode);
+            // Önce stok kategorisinin var olup olmadığını kontrol edebiliriz
+            var stockCategory = await _unitOfWork.StockCategories.GetByIdAsync(stockCategoryId);
+            if (stockCategory == null)
+                return NotFound($"StockCategory with id {stockCategoryId} not found.");
+
+            var materials = await _materialService.GetMaterialsByStockCategoryAsync(stockCategoryId);
             return Ok(materials);
         }
 

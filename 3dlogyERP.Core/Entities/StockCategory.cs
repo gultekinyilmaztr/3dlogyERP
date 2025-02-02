@@ -8,7 +8,7 @@
         public string Description { get; set; }
         public bool IsActive { get; set; }
 
-        public virtual ICollection<Material> Materials { get; set; }
-        public virtual ICollection<MaterialType> MaterialTypes { get; set; }
+        public virtual ICollection<Material>? Materials { get; set; }
+        public virtual ICollection<MaterialType>? MaterialTypes { get; set; }
     }
 }
