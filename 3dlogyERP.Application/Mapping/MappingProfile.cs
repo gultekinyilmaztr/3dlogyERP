@@ -5,6 +5,7 @@ using _3dlogyERP.Application.Dtos.MaterialDtos;
 using _3dlogyERP.Application.Dtos.MaterialTypeDtos;
 using _3dlogyERP.Application.Dtos.OrderDtos;
 using _3dlogyERP.Application.Dtos.UserDtos;
+using _3dlogyERP.Application.DTOs.StockCategoryDtos;
 using _3dlogyERP.Core.Entities;
 using AutoMapper;
 
@@ -37,7 +38,9 @@ namespace _3dlogyERP.Application.Mapping
             CreateMap<Expense, ExpenseUpdateDto>();
 
             // Material mappings
-            CreateMap<Material, MaterialListDto>();
+            CreateMap<Material, MaterialListDto>()
+                .ForMember(dest => dest.StockCategoryCode, opt => opt.MapFrom(src => src.StockCategory.Code));
+                //.ForMember(dest => dest.StockCategoryId, opt => opt.MapFrom(src => src.StockCategory.Id));
             CreateMap<MaterialCreateDto, Material>();
             CreateMap<MaterialUpdateDto, Material>();
             CreateMap<Material, MaterialUpdateDto>();
@@ -62,6 +65,9 @@ namespace _3dlogyERP.Application.Mapping
             CreateMap<UserCreateDto, User>();
             CreateMap<UserUpdateDto, User>();
             CreateMap<User, UserUpdateDto>();
+
+            // StockCategory mappings
+            CreateMap<StockCategory, StockCategoryListDto>().ReverseMap();
         }
     }
 }

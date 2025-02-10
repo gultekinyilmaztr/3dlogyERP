@@ -81,7 +81,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
                     b.HasIndex("Phone")
                         .IsUnique();
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.CustomerDocument", b =>
@@ -114,7 +114,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("CustomerDocument");
+                    b.ToTable("CustomerDocument", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.Equipment", b =>
@@ -180,7 +180,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
                     b.HasIndex("SerialNumber")
                         .IsUnique();
 
-                    b.ToTable("Equipments");
+                    b.ToTable("Equipments", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.EquipmentType", b =>
@@ -209,7 +209,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("EquipmentTypes");
+                    b.ToTable("EquipmentTypes", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.Expense", b =>
@@ -280,7 +280,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
 
                     b.HasIndex("ExpenseCategoryId");
 
-                    b.ToTable("Expenses");
+                    b.ToTable("Expenses", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.ExpenseCategory", b =>
@@ -309,7 +309,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
 
                     b.HasIndex("ParentCategoryId");
 
-                    b.ToTable("ExpenseCategories");
+                    b.ToTable("ExpenseCategories", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.MaintenanceRecord", b =>
@@ -348,7 +348,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
 
                     b.HasIndex("EquipmentId");
 
-                    b.ToTable("MaintenanceRecord");
+                    b.ToTable("MaintenanceRecord", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.Material", b =>
@@ -429,7 +429,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
 
                     b.HasIndex("StockCategoryId");
 
-                    b.ToTable("Materials");
+                    b.ToTable("Materials", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.MaterialTransaction", b =>
@@ -479,7 +479,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
 
                     b.HasIndex("MaterialId");
 
-                    b.ToTable("MaterialTransactions");
+                    b.ToTable("MaterialTransactions", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.MaterialType", b =>
@@ -516,7 +516,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
 
                     b.HasIndex("StockCategoryId");
 
-                    b.ToTable("MaterialTypes");
+                    b.ToTable("MaterialTypes", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.Order", b =>
@@ -580,7 +580,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
                     b.HasIndex("OrderNumber")
                         .IsUnique();
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.OrderDocument", b =>
@@ -613,7 +613,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderDocument");
+                    b.ToTable("OrderDocument", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.OrderItem", b =>
@@ -661,7 +661,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderItems", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.OrderService", b =>
@@ -739,7 +739,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
 
                     b.HasIndex("ServiceTypeId");
 
-                    b.ToTable("OrderServices");
+                    b.ToTable("OrderServices", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.ServiceType", b =>
@@ -772,7 +772,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("ServiceTypes");
+                    b.ToTable("ServiceTypes", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.StockCategory", b =>
@@ -800,7 +800,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("StockCategories");
+                    b.ToTable("StockCategories", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.User", b =>
@@ -847,7 +847,7 @@ namespace _3dlogyERP.Infrastructure.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("_3dlogyERP.Core.Entities.CustomerDocument", b =>

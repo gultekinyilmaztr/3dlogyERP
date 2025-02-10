@@ -36,7 +36,8 @@ namespace _3dlogyERP.Application.Services
             var materials = await _unitOfWork.Materials
                 .Query()
                 .Include(m => m.MaterialType)
-                .Include(m => m.StockCategory)
+                .Include(m => m.StockCategory) // StockCategory ekledik
+                .AsNoTracking()
                 .ToListAsync();
 
             return _mapper.Map<IEnumerable<MaterialListDto>>(materials);
@@ -50,14 +51,20 @@ namespace _3dlogyERP.Application.Services
             await _unitOfWork.Materials.AddAsync(material);
             await _unitOfWork.SaveChangesAsync();
 
-            return await GetMaterialByIdAsync(material.Id);
+            return await GetMaterialByIdAsync(material.Id); // Bu metot zaten güncellenmiþ Include'larý kullanacak
         }
+
 
         public async Task<MaterialListDto> UpdateMaterialAsync(int id, MaterialUpdateDto materialDto)
         {
             ArgumentNullException.ThrowIfNull(materialDto);
 
-            var existingMaterial = await _unitOfWork.Materials.GetByIdAsync(id);
+            var existingMaterial = await _unitOfWork.Materials
+                .Query()
+                .Include(m => m.MaterialType)
+                .Include(m => m.StockCategory) // StockCategory ekledik
+                .FirstOrDefaultAsync(m => m.Id == id);
+
             if (existingMaterial == null)
                 return null;
 
@@ -95,13 +102,14 @@ namespace _3dlogyERP.Application.Services
             }
         }
 
-        public async Task<IEnumerable<MaterialListDto>> GetMaterialsByStockCategoryAsync(int stockCategoryId)
+        public async Task<IEnumerable<MaterialListDto>> GetMaterialsByStockCategoryAsync(int categoryId)
         {
             var materials = await _unitOfWork.Materials
                 .Query()
-                .Include(m => m.MaterialType)
-                .Include(m => m.StockCategory)
-                .Where(m => m.StockCategoryId == stockCategoryId)
+                .Include(x => x.StockCategory)
+                .Include(x => x.MaterialType)
+                .Where(x => x.StockCategoryId == categoryId)
+                .AsNoTracking()
                 .ToListAsync();
 
             return _mapper.Map<IEnumerable<MaterialListDto>>(materials);

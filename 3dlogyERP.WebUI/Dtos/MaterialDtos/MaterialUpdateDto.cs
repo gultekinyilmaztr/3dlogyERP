@@ -16,7 +16,7 @@ namespace _3dlogyERP.WebUI.Dtos.MaterialDtos
         public int MaterialTypeId { get; set; }
 
         [Required(ErrorMessage = "Stok Kategorisi zorunludur")]
-        public int? StockCategoryId { get; set; }
+        public string StockCategoryCode { get; set; }
 
         public string Color { get; set; }
 

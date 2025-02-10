@@ -7,6 +7,7 @@ namespace _3dlogyERP.Application.Dtos.MaterialDtos
         public string Name { get; set; }
         public string Brand { get; set; }
         public int MaterialTypeId { get; set; }
+        //public int StockCategoryId { get; set; }
         public string StockCategoryCode { get; set; }
         public string Color { get; set; }
         public decimal UnitCost { get; set; }  // Birim maliyet

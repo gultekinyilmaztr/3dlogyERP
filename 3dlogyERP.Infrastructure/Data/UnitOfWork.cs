@@ -20,6 +20,7 @@ namespace _3dlogyERP.Infrastructure.Data
         private IRepository<Expense> _expenses;
         private IRepository<ExpenseCategory> _expenseCategories;
         private IRepository<StockCategory> _stockCategories;
+        
 
         public UnitOfWork(ApplicationDbContext context)
         {

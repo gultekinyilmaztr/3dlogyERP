@@ -144,16 +144,11 @@ namespace _3dlogyERP.Web.Controllers
             return Ok(transactions);
         }
 
-        [HttpGet("by-stock-category/{stockCategoryId}")]
-        public async Task<ActionResult<IEnumerable<MaterialListDto>>> GetMaterialsByStockCategory(int stockCategoryId)
+        [HttpGet("ByStockCategory/{categoryId}")]
+        public async Task<ActionResult<IEnumerable<MaterialListDto>>> GetByStockCategory(int categoryId)
         {
-            // Önce stok kategorisinin var olup olmadığını kontrol edebiliriz
-            var stockCategory = await _unitOfWork.StockCategories.GetByIdAsync(stockCategoryId);
-            if (stockCategory == null)
-                return NotFound($"StockCategory with id {stockCategoryId} not found.");
-
-            var materials = await _materialService.GetMaterialsByStockCategoryAsync(stockCategoryId);
-            return Ok(materials);
+            var materials = await _materialService.GetMaterialsByStockCategoryAsync(categoryId);
+            return Ok(materials); // NotFound kontrolünü kaldırıyoruz, boş liste dönebilir
         }
 
     }

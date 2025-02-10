@@ -70,6 +70,7 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
 builder.Services.AddScoped<IEquipmentService, EquipmentService>();
+builder.Services.AddScoped<IStockCategoryService, StockCategoryService>();
 
 // Configure Swagger
 builder.Services.AddEndpointsApiExplorer();

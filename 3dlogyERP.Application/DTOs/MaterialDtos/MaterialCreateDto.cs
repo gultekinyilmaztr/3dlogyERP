@@ -13,8 +13,7 @@ namespace _3dlogyERP.Application.Dtos.MaterialDtos
         public int MaterialTypeId { get; set; }
 
         [Required(ErrorMessage = "Stok Tipi zorunludur")]
-        public string StockCategoryCode { get; set; }
-
+        public int StockCategoryId { get; set; }
         public string Color { get; set; }
 
         [Required(ErrorMessage = "Birim maliyet zorunludur")]
